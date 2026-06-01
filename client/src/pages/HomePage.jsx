@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -31,6 +31,23 @@ import {
   process,
   productServices,
 } from "../config/siteData.js";
+
+const FALLBACK_SETTINGS = {
+  siteName: "OBM",
+  logo: "",
+  primaryColor: "#22d3ee",
+  secondaryColor: "#2563eb",
+  heroBadge: "AI Consultancy & Digital Transformation",
+  heroTitle: "Build smarter digital systems for your business",
+  heroText:
+    "OBM helps businesses launch modern websites, automation systems, dashboards, and AI-ready digital platforms.",
+  ctaPrimary: "Start Your Project",
+  ctaSecondary: "View Services",
+  email: "info@obm.qa",
+  phone: "+974 0000 0000",
+  location: "Doha, Qatar",
+  footerText: "Creative digital solutions for modern businesses.",
+};
 
 const fadeUp = {
   hidden: { opacity: 0, y: 28 },
@@ -78,6 +95,27 @@ const defaultContactForm = {
   serviceType: "Product Engineering",
   message: "",
 };
+
+function SafeLogo({ settings, size = "lg", className = "" }) {
+  const [logoFailed, setLogoFailed] = useState(false);
+
+  const logoUrl = String(settings?.logo || "").trim();
+  const hasLogo = Boolean(logoUrl) && !logoFailed;
+
+  if (hasLogo) {
+    return (
+      <img
+        src={logoUrl}
+        alt={settings?.siteName || "OBM"}
+        className={`h-10 w-10 rounded-xl object-contain sm:h-12 sm:w-12 ${className}`}
+        loading="eager"
+        onError={() => setLogoFailed(true)}
+      />
+    );
+  }
+
+  return <LogoMark settings={settings} size={size} />;
+}
 
 function GlowOrb({ className = "", color, delay = 0 }) {
   return (
@@ -177,7 +215,7 @@ function HeroDashboard({ settings }) {
           <div className="relative mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-3 sm:gap-4">
               <div className="obm-dashboard-logo-box shrink-0 rounded-2xl border border-white/10 bg-slate-950 p-2 sm:p-3">
-                <LogoMark settings={settings} size="lg" />
+                <SafeLogo settings={settings} size="lg" />
               </div>
 
               <div className="min-w-0">
@@ -220,6 +258,7 @@ function HeroDashboard({ settings }) {
                       className="h-6 w-6 shrink-0 sm:h-7 sm:w-7"
                       style={{ color: settings.primaryColor }}
                     />
+
                     <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-bold text-white">
                       {item.value}
                     </span>
@@ -504,6 +543,28 @@ export default function HomePage({
   themeMode = "dark",
   toggleTheme,
 }) {
+  const safeSettings = useMemo(
+    () => ({
+      ...FALLBACK_SETTINGS,
+      ...(settings || {}),
+      primaryColor:
+        settings?.primaryColor || FALLBACK_SETTINGS.primaryColor,
+      secondaryColor:
+        settings?.secondaryColor || FALLBACK_SETTINGS.secondaryColor,
+      siteName: settings?.siteName || FALLBACK_SETTINGS.siteName,
+      heroBadge: settings?.heroBadge || FALLBACK_SETTINGS.heroBadge,
+      heroTitle: settings?.heroTitle || FALLBACK_SETTINGS.heroTitle,
+      heroText: settings?.heroText || FALLBACK_SETTINGS.heroText,
+      ctaPrimary: settings?.ctaPrimary || FALLBACK_SETTINGS.ctaPrimary,
+      ctaSecondary: settings?.ctaSecondary || FALLBACK_SETTINGS.ctaSecondary,
+      email: settings?.email || FALLBACK_SETTINGS.email,
+      phone: settings?.phone || FALLBACK_SETTINGS.phone,
+      location: settings?.location || FALLBACK_SETTINGS.location,
+      footerText: settings?.footerText || FALLBACK_SETTINGS.footerText,
+    }),
+    [settings],
+  );
+
   const [contactForm, setContactForm] = useState(defaultContactForm);
   const [contactSubmitting, setContactSubmitting] = useState(false);
   const [contactSuccess, setContactSuccess] = useState("");
@@ -542,30 +603,30 @@ export default function HomePage({
   return (
     <main className="min-h-screen w-full overflow-x-clip bg-slate-950 text-white">
       <PublicNav
-        settings={settings}
+        settings={safeSettings}
         navigate={navigate}
         themeMode={themeMode}
         toggleTheme={toggleTheme}
       />
 
       <section className="relative overflow-hidden">
-        <AnimatedGrid settings={settings} />
+        <AnimatedGrid settings={safeSettings} />
 
         <GlowOrb
           className="-left-20 top-10 h-56 w-56 sm:-left-24 sm:h-96 sm:w-96"
-          color={settings.primaryColor}
+          color={safeSettings.primaryColor}
         />
 
         <GlowOrb
           className="-right-20 top-44 h-56 w-56 sm:-right-24 sm:h-96 sm:w-96"
-          color={settings.secondaryColor}
+          color={safeSettings.secondaryColor}
           delay={1.2}
         />
 
         <div
           className="absolute inset-0"
           style={{
-            background: `radial-gradient(circle at top left, ${settings.primaryColor}33, transparent 35%), radial-gradient(circle at top right, ${settings.secondaryColor}2e, transparent 35%)`,
+            background: `radial-gradient(circle at top left, ${safeSettings.primaryColor}33, transparent 35%), radial-gradient(circle at top right, ${safeSettings.secondaryColor}2e, transparent 35%)`,
           }}
         />
 
@@ -577,21 +638,21 @@ export default function HomePage({
             className="max-w-3xl min-w-0 text-center sm:text-left"
           >
             <motion.div variants={fadeUp}>
-              <Badge settings={settings}>{settings.heroBadge}</Badge>
+              <Badge settings={safeSettings}>{safeSettings.heroBadge}</Badge>
             </motion.div>
 
             <motion.h1
               variants={fadeUp}
               className="mt-6 break-words text-[clamp(2.35rem,11vw,4.5rem)] font-black leading-[0.96] tracking-tight sm:mt-7 md:text-6xl xl:text-7xl"
             >
-              {settings.heroTitle}
+              {safeSettings.heroTitle}
             </motion.h1>
 
             <motion.p
               variants={fadeUp}
               className="mx-auto mt-5 max-w-xl text-base leading-7 text-slate-300 sm:mx-0 sm:mt-6 sm:text-lg sm:leading-8"
             >
-              {settings.heroText}
+              {safeSettings.heroText}
             </motion.p>
 
             <motion.div
@@ -604,11 +665,11 @@ export default function HomePage({
                 whileTap={{ scale: 0.98 }}
                 className="group inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-center font-bold text-slate-950 shadow-lg transition sm:w-auto sm:px-7"
                 style={{
-                  backgroundColor: settings.primaryColor,
-                  boxShadow: `0 18px 50px ${settings.primaryColor}2e`,
+                  backgroundColor: safeSettings.primaryColor,
+                  boxShadow: `0 18px 50px ${safeSettings.primaryColor}2e`,
                 }}
               >
-                {settings.ctaPrimary}
+                {safeSettings.ctaPrimary}
                 <ArrowRight className="h-5 w-5 shrink-0 transition group-hover:translate-x-1" />
               </motion.a>
 
@@ -618,7 +679,7 @@ export default function HomePage({
                 whileTap={{ scale: 0.98 }}
                 className="inline-flex w-full items-center justify-center rounded-full border border-white/15 px-6 py-4 text-center font-semibold text-white transition hover:bg-white/10 sm:w-auto sm:px-7"
               >
-                {settings.ctaSecondary}
+                {safeSettings.ctaSecondary}
               </motion.a>
             </motion.div>
 
@@ -631,36 +692,39 @@ export default function HomePage({
               <StatCard
                 value="360°"
                 label="Tech partner"
-                settings={settings}
+                settings={safeSettings}
                 delay={0.4}
               />
               <StatCard
                 value="MVP"
                 label="Fast launch"
-                settings={settings}
+                settings={safeSettings}
                 delay={0.5}
               />
               <StatCard
                 value="AI"
                 label="Automation ready"
-                settings={settings}
+                settings={safeSettings}
                 delay={0.6}
               />
             </motion.div>
           </motion.div>
 
           <div className="min-w-0">
-            <HeroDashboard settings={settings} />
+            <HeroDashboard settings={safeSettings} />
           </div>
         </div>
       </section>
 
-      <WowStrip settings={settings} />
+      <WowStrip settings={safeSettings} />
 
-      <section id="services" className="relative px-4 py-16 sm:px-5 sm:py-20 lg:py-24">
+      <section
+        id="services"
+        className="relative px-4 py-16 sm:px-5 sm:py-20 lg:py-24"
+      >
         <GlowOrb
           className="left-1/2 top-20 h-56 w-56 -translate-x-1/2 sm:h-72 sm:w-72"
-          color={settings.primaryColor}
+          color={safeSettings.primaryColor}
         />
 
         <div className="relative mx-auto max-w-7xl">
@@ -671,7 +735,7 @@ export default function HomePage({
             viewport={{ once: true, amount: 0.25 }}
           >
             <SectionTitle
-              settings={settings}
+              settings={safeSettings}
               eyebrow="What We Do"
               title="Product engineering, digital transformation, and enterprise automation"
               text="We act as a complete technology partner for businesses looking to modernize operations and scale digitally."
@@ -686,7 +750,7 @@ export default function HomePage({
             className="mt-10 grid min-w-0 gap-5 lg:mt-14 lg:grid-cols-2 lg:gap-8"
           >
             <PillarCard
-              settings={settings}
+              settings={safeSettings}
               eyebrow="Pillar 01"
               title="Product Engineering & Digital Transformation"
               icon={Rocket}
@@ -696,13 +760,13 @@ export default function HomePage({
                   key={service.title}
                   service={service}
                   index={index}
-                  settings={settings}
+                  settings={safeSettings}
                 />
               ))}
             </PillarCard>
 
             <PillarCard
-              settings={settings}
+              settings={safeSettings}
               eyebrow="Pillar 02"
               title="Enterprise Solutions & Automation"
               icon={Workflow}
@@ -713,7 +777,7 @@ export default function HomePage({
                   key={service.title}
                   service={service}
                   index={index}
-                  settings={settings}
+                  settings={safeSettings}
                 />
               ))}
             </PillarCard>
@@ -725,7 +789,7 @@ export default function HomePage({
         id="process"
         className="relative overflow-hidden border-y border-white/10 bg-white/[0.03] px-4 py-16 sm:px-5 sm:py-20 lg:py-24"
       >
-        <AnimatedGrid settings={settings} />
+        <AnimatedGrid settings={safeSettings} />
 
         <div className="relative mx-auto max-w-7xl">
           <motion.div
@@ -735,7 +799,7 @@ export default function HomePage({
             viewport={{ once: true, amount: 0.25 }}
           >
             <SectionTitle
-              settings={settings}
+              settings={safeSettings}
               eyebrow="Our Process"
               title="From idea to deployed business system"
               text="A structured delivery model for startups, SMEs, and enterprises that need clarity, speed, and production quality."
@@ -754,7 +818,7 @@ export default function HomePage({
                 key={step}
                 step={step}
                 index={index}
-                settings={settings}
+                settings={safeSettings}
               />
             ))}
           </motion.div>
@@ -772,7 +836,7 @@ export default function HomePage({
           >
             <p
               className="mb-3 text-sm font-semibold uppercase tracking-[0.22em] sm:tracking-[0.25em]"
-              style={{ color: settings.primaryColor }}
+              style={{ color: safeSettings.primaryColor }}
             >
               Industries
             </p>
@@ -798,7 +862,7 @@ export default function HomePage({
                 >
                   <Icon
                     className="h-6 w-6"
-                    style={{ color: settings.primaryColor }}
+                    style={{ color: safeSettings.primaryColor }}
                   />
                   <p className="mt-3 font-bold text-white">{label}</p>
                 </div>
@@ -814,7 +878,7 @@ export default function HomePage({
             className="grid min-w-0 gap-4 sm:grid-cols-2"
           >
             {industries.map((item) => (
-              <IndustryCard key={item} item={item} settings={settings} />
+              <IndustryCard key={item} item={item} settings={safeSettings} />
             ))}
           </motion.div>
         </div>
@@ -826,7 +890,7 @@ export default function HomePage({
       >
         <GlowOrb
           className="right-0 top-10 h-56 w-56 sm:h-72 sm:w-72"
-          color={settings.secondaryColor}
+          color={safeSettings.secondaryColor}
         />
 
         <div className="relative mx-auto max-w-7xl">
@@ -837,7 +901,7 @@ export default function HomePage({
             viewport={{ once: true, amount: 0.25 }}
           >
             <SectionTitle
-              settings={settings}
+              settings={safeSettings}
               eyebrow="Packages"
               title="Flexible development and automation plans"
               text="Start with a focused audit or move directly into a complete product build."
@@ -852,17 +916,24 @@ export default function HomePage({
             className="mt-10 grid gap-5 md:grid-cols-2 lg:mt-14 lg:grid-cols-3 lg:gap-6"
           >
             {packages.map((pkg) => (
-              <PricingCard key={pkg.name} pkg={pkg} settings={settings} />
+              <PricingCard
+                key={pkg.name}
+                pkg={pkg}
+                settings={safeSettings}
+              />
             ))}
           </motion.div>
         </div>
       </section>
 
-      <section id="contact" className="relative px-4 py-16 sm:px-5 sm:py-20 lg:py-24">
+      <section
+        id="contact"
+        className="relative px-4 py-16 sm:px-5 sm:py-20 lg:py-24"
+      >
         <div className="relative mx-auto grid max-w-7xl gap-8 overflow-hidden rounded-[1.5rem] border border-white/10 bg-gradient-to-br from-slate-900 to-slate-950 p-5 sm:rounded-[2rem] sm:p-6 md:grid-cols-2 md:p-10">
           <div
             className="absolute -left-24 -top-24 h-56 w-56 rounded-full blur-3xl sm:h-64 sm:w-64"
-            style={{ backgroundColor: `${settings.primaryColor}18` }}
+            style={{ backgroundColor: `${safeSettings.primaryColor}18` }}
           />
 
           <motion.div
@@ -874,7 +945,7 @@ export default function HomePage({
           >
             <p
               className="mb-3 text-sm font-semibold uppercase tracking-[0.22em] sm:tracking-[0.25em]"
-              style={{ color: settings.primaryColor }}
+              style={{ color: safeSettings.primaryColor }}
             >
               Contact
             </p>
@@ -893,26 +964,30 @@ export default function HomePage({
               <p className="flex min-w-0 items-start gap-3">
                 <Mail
                   className="mt-0.5 h-5 w-5 shrink-0"
-                  style={{ color: settings.primaryColor }}
+                  style={{ color: safeSettings.primaryColor }}
                 />
-                <span className="min-w-0 break-words">{settings.email}</span>
+                <span className="min-w-0 break-words">
+                  {safeSettings.email}
+                </span>
               </p>
 
               <p className="flex min-w-0 items-start gap-3">
                 <Phone
                   className="mt-0.5 h-5 w-5 shrink-0"
-                  style={{ color: settings.primaryColor }}
+                  style={{ color: safeSettings.primaryColor }}
                 />
-                <span className="min-w-0 break-words">{settings.phone}</span>
+                <span className="min-w-0 break-words">
+                  {safeSettings.phone}
+                </span>
               </p>
 
               <p className="flex min-w-0 items-start gap-3">
                 <MapPin
                   className="mt-0.5 h-5 w-5 shrink-0"
-                  style={{ color: settings.primaryColor }}
+                  style={{ color: safeSettings.primaryColor }}
                 />
                 <span className="min-w-0 break-words">
-                  {settings.location}
+                  {safeSettings.location}
                 </span>
               </p>
             </div>
@@ -933,7 +1008,7 @@ export default function HomePage({
                   updateContactForm("name", event.target.value)
                 }
                 className="w-full min-w-0 rounded-2xl border border-white/10 bg-slate-950 px-4 py-4 outline-none placeholder:text-slate-500 focus:ring-2"
-                style={{ "--tw-ring-color": settings.primaryColor }}
+                style={{ "--tw-ring-color": safeSettings.primaryColor }}
                 placeholder="Your Name"
                 required
               />
@@ -945,7 +1020,7 @@ export default function HomePage({
                   updateContactForm("email", event.target.value)
                 }
                 className="w-full min-w-0 rounded-2xl border border-white/10 bg-slate-950 px-4 py-4 outline-none placeholder:text-slate-500 focus:ring-2"
-                style={{ "--tw-ring-color": settings.primaryColor }}
+                style={{ "--tw-ring-color": safeSettings.primaryColor }}
                 placeholder="Email Address"
                 required
               />
@@ -956,7 +1031,7 @@ export default function HomePage({
                   updateContactForm("companyName", event.target.value)
                 }
                 className="w-full min-w-0 rounded-2xl border border-white/10 bg-slate-950 px-4 py-4 outline-none placeholder:text-slate-500 focus:ring-2"
-                style={{ "--tw-ring-color": settings.primaryColor }}
+                style={{ "--tw-ring-color": safeSettings.primaryColor }}
                 placeholder="Company Name"
               />
 
@@ -966,7 +1041,7 @@ export default function HomePage({
                   updateContactForm("serviceType", event.target.value)
                 }
                 className="w-full min-w-0 rounded-2xl border border-white/10 bg-slate-950 px-4 py-4 outline-none focus:ring-2"
-                style={{ "--tw-ring-color": settings.primaryColor }}
+                style={{ "--tw-ring-color": safeSettings.primaryColor }}
               >
                 <option>Product Engineering</option>
                 <option>Digital Transformation</option>
@@ -982,7 +1057,7 @@ export default function HomePage({
                   updateContactForm("message", event.target.value)
                 }
                 className="min-h-32 w-full min-w-0 resize-y rounded-2xl border border-white/10 bg-slate-950 px-4 py-4 outline-none placeholder:text-slate-500 focus:ring-2"
-                style={{ "--tw-ring-color": settings.primaryColor }}
+                style={{ "--tw-ring-color": safeSettings.primaryColor }}
                 placeholder="Tell us about your project"
                 required
               />
@@ -1008,7 +1083,7 @@ export default function HomePage({
                 }}
                 whileTap={{ scale: contactSubmitting ? 1 : 0.98 }}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-center font-black text-slate-950 transition disabled:cursor-not-allowed disabled:opacity-60 sm:px-7"
-                style={{ backgroundColor: settings.primaryColor }}
+                style={{ backgroundColor: safeSettings.primaryColor }}
               >
                 {contactSubmitting ? "Sending..." : "Send Inquiry"}
                 <Rocket className="h-5 w-5 shrink-0" />
@@ -1021,10 +1096,10 @@ export default function HomePage({
       <footer className="border-t border-white/10 px-4 py-8 sm:px-5">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 text-center text-sm text-slate-400 md:flex-row md:text-left">
           <p className="break-words">
-            © {new Date().getFullYear()} {settings.siteName}. All rights
+            © {new Date().getFullYear()} {safeSettings.siteName}. All rights
             reserved.
           </p>
-          <p className="break-words">{settings.footerText}</p>
+          <p className="break-words">{safeSettings.footerText}</p>
         </div>
       </footer>
     </main>

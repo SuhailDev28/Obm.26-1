@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 export const defaultSettings = {
   siteName: "OBM",
   tagline: "AI Consultancy & Software Development",
-  logo: "/uploads/obm-logo.png",
+  logo: "/uploads/ogo-1780319743876.png",
 
   primaryColor: "#22d3ee",
   secondaryColor: "#2563eb",

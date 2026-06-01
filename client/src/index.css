@@ -1,0 +1,203 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --obm-primary: #22d3ee;
+  --obm-secondary: #2563eb;
+  --obm-accent: #a855f7;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html.obm-dark {
+  color-scheme: dark;
+}
+
+html.obm-light {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background: #020617;
+  color: #ffffff;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+input[type="color"] {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch {
+  border: 0;
+  border-radius: 14px;
+}
+
+/* =========================
+   OBM LIGHT MODE OVERRIDES
+   ========================= */
+
+html.obm-light body {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+html.obm-light .bg-slate-950 {
+  background-color: #f8fafc !important;
+}
+
+html.obm-light .bg-slate-900,
+html.obm-light .bg-slate-900\/60,
+html.obm-light .bg-slate-900\/95 {
+  background-color: #ffffff !important;
+}
+
+html.obm-light .bg-slate-800\/80 {
+  background-color: #f1f5f9 !important;
+}
+
+html.obm-light .bg-slate-950\/70,
+html.obm-light .bg-slate-950\/75,
+html.obm-light .bg-slate-950\/80,
+html.obm-light .bg-slate-950\/88,
+html.obm-light .bg-slate-950\/90 {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+html.obm-light .bg-white\/\[0\.025\],
+html.obm-light .bg-white\/\[0\.03\],
+html.obm-light .bg-white\/\[0\.035\],
+html.obm-light .bg-white\/\[0\.04\],
+html.obm-light .bg-white\/\[0\.05\],
+html.obm-light .bg-white\/\[0\.06\],
+html.obm-light .bg-white\/10 {
+  background-color: rgba(255, 255, 255, 0.84) !important;
+}
+
+html.obm-light .text-white {
+  color: #0f172a !important;
+}
+
+html.obm-light .text-slate-200 {
+  color: #1e293b !important;
+}
+
+html.obm-light .text-slate-300 {
+  color: #334155 !important;
+}
+
+html.obm-light .text-slate-400,
+html.obm-light .text-slate-500 {
+  color: #64748b !important;
+}
+
+html.obm-light .text-slate-950 {
+  color: #0f172a !important;
+}
+
+html.obm-light .border-white\/5,
+html.obm-light .border-white\/10,
+html.obm-light .border-white\/15,
+html.obm-light .border-white\/20 {
+  border-color: rgba(15, 23, 42, 0.1) !important;
+}
+
+html.obm-light .border-dashed.border-white\/20 {
+  border-color: rgba(15, 23, 42, 0.18) !important;
+}
+
+html.obm-light .bg-gradient-to-br {
+  background-image: linear-gradient(to bottom right, #ffffff, #f8fafc) !important;
+}
+
+html.obm-light input,
+html.obm-light textarea,
+html.obm-light select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+}
+
+html.obm-light input::placeholder,
+html.obm-light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.obm-light option {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+html.obm-light .shadow-black\/20 {
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.1) !important;
+}
+
+html.obm-light .shadow-cyan-950\/30 {
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.12) !important;
+}
+
+html.obm-light .backdrop-blur,
+html.obm-light .backdrop-blur-xl,
+html.obm-light .backdrop-blur-2xl {
+  backdrop-filter: blur(20px);
+}
+
+/* Keep colored status elements readable in light mode */
+html.obm-light .text-emerald-300 {
+  color: #047857 !important;
+}
+
+html.obm-light .bg-emerald-400\/10 {
+  background-color: rgba(16, 185, 129, 0.12) !important;
+}
+
+html.obm-light .text-red-200 {
+  color: #b91c1c !important;
+}
+
+html.obm-light .bg-red-400\/10 {
+  background-color: rgba(248, 113, 113, 0.12) !important;
+}
+
+html.obm-light .text-amber-100 {
+  color: #92400e !important;
+}
+
+html.obm-light .bg-amber-400\/10 {
+  background-color: rgba(251, 191, 36, 0.16) !important;
+}
+
+/* Smooth theme transition */
+body,
+header,
+section,
+div,
+input,
+textarea,
+select,
+button,
+a {
+  transition:
+    background-color 220ms ease,
+    border-color 220ms ease,
+    color 220ms ease,
+    box-shadow 220ms ease;
+}

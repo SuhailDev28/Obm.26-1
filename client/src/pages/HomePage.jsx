@@ -18,7 +18,6 @@ import {
   MousePointer2,
   Cpu,
   WandSparkles,
-  Sparkles,
 } from "lucide-react";
 
 import PublicNav from "../components/PublicNav.jsx";
@@ -53,8 +52,8 @@ const staggerContainer = {
 };
 
 const floatAnimation = {
-  y: [0, -12, 0],
-  rotate: [0, 1.5, 0],
+  y: [0, -10, 0],
+  rotate: [0, 1.2, 0],
   transition: {
     duration: 5.5,
     repeat: Infinity,
@@ -87,7 +86,7 @@ function GlowOrb({ className = "", color, delay = 0 }) {
       style={{ backgroundColor: color }}
       animate={{
         scale: [1, 1.18, 1],
-        opacity: [0.1, 0.22, 0.1],
+        opacity: [0.08, 0.2, 0.08],
       }}
       transition={{
         duration: 7,
@@ -103,12 +102,12 @@ function AnimatedGrid({ settings }) {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
       <div
-        className="absolute inset-0 opacity-[0.12]"
+        className="absolute inset-0 opacity-[0.1] sm:opacity-[0.12]"
         style={{
           backgroundImage: `linear-gradient(${settings.primaryColor}22 1px, transparent 1px), linear-gradient(90deg, ${settings.primaryColor}22 1px, transparent 1px)`,
-          backgroundSize: "54px 54px",
+          backgroundSize: "42px 42px",
           maskImage:
-            "radial-gradient(circle at center, black 25%, transparent 72%)",
+            "radial-gradient(circle at center, black 22%, transparent 72%)",
         }}
       />
     </div>
@@ -145,46 +144,47 @@ function HeroDashboard({ settings }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.92, rotateX: 8 }}
+      initial={{ opacity: 0, scale: 0.94, rotateX: 6 }}
       animate={{ opacity: 1, scale: 1, rotateX: 0 }}
       transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-      className="relative mx-auto w-full max-w-[640px]"
+      className="relative mx-auto w-full max-w-[640px] min-w-0"
     >
       <GlowOrb
-        className="-right-10 -top-10 h-72 w-72"
+        className="-right-8 -top-8 h-48 w-48 sm:h-72 sm:w-72"
         color={settings.primaryColor}
         delay={0.3}
       />
+
       <GlowOrb
-        className="-bottom-12 left-8 h-64 w-64"
+        className="-bottom-8 left-4 h-48 w-48 sm:h-64 sm:w-64"
         color={settings.secondaryColor}
         delay={1}
       />
 
       <motion.div
         animate={floatAnimation}
-        className="obm-dashboard-shell relative rounded-[1.7rem] border border-white/10 bg-white/[0.06] p-3 shadow-2xl backdrop-blur-xl sm:rounded-[2.2rem] sm:p-4"
+        className="obm-dashboard-shell relative w-full overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/[0.06] p-2.5 shadow-2xl backdrop-blur-xl sm:rounded-[2.2rem] sm:p-4"
         style={{ boxShadow: `0 30px 120px ${settings.primaryColor}14` }}
       >
-        <div className="absolute inset-0 rounded-[1.7rem] bg-gradient-to-br from-white/10 via-transparent to-transparent sm:rounded-[2.2rem]" />
+        <div className="absolute inset-0 rounded-[1.5rem] bg-gradient-to-br from-white/10 via-transparent to-transparent sm:rounded-[2.2rem]" />
 
-        <div className="obm-dashboard-inner relative overflow-hidden rounded-[1.25rem] border border-white/10 bg-slate-900/95 p-4 sm:rounded-[1.6rem] sm:p-5">
+        <div className="obm-dashboard-inner relative overflow-hidden rounded-[1.1rem] border border-white/10 bg-slate-900/95 p-3 sm:rounded-[1.6rem] sm:p-5">
           <div
-            className="absolute -right-20 -top-20 h-64 w-64 rounded-full blur-3xl"
+            className="absolute -right-20 -top-20 h-48 w-48 rounded-full blur-3xl sm:h-64 sm:w-64"
             style={{ backgroundColor: `${settings.primaryColor}18` }}
           />
 
           <div className="relative mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-center gap-4">
+            <div className="flex min-w-0 items-center gap-3 sm:gap-4">
               <div className="obm-dashboard-logo-box shrink-0 rounded-2xl border border-white/10 bg-slate-950 p-2 sm:p-3">
                 <LogoMark settings={settings} size="lg" />
               </div>
 
               <div className="min-w-0">
-                <p className="text-xs text-slate-400 sm:text-sm">
+                <p className="truncate text-xs text-slate-400 sm:text-sm">
                   Business Control Center
                 </p>
-                <p className="text-lg font-black leading-tight text-white sm:text-xl">
+                <p className="text-base font-black leading-tight text-white sm:text-xl">
                   Digital Transformation Suite
                 </p>
               </div>
@@ -203,7 +203,7 @@ function HeroDashboard({ settings }) {
             variants={staggerContainer}
             initial="hidden"
             animate="visible"
-            className="relative grid gap-4 sm:grid-cols-2"
+            className="relative grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4"
           >
             {metrics.map((item) => {
               const Icon = item.icon;
@@ -213,11 +213,11 @@ function HeroDashboard({ settings }) {
                   key={item.title}
                   variants={fadeUp}
                   whileHover={{ y: -6, scale: 1.02 }}
-                  className="obm-dashboard-card group rounded-2xl border border-white/10 bg-slate-800/80 p-4 transition sm:p-5"
+                  className="obm-dashboard-card group min-w-0 rounded-2xl border border-white/10 bg-slate-800/80 p-4 transition sm:p-5"
                 >
-                  <div className="mb-5 flex items-center justify-between">
+                  <div className="mb-5 flex items-center justify-between gap-3">
                     <Icon
-                      className="h-6 w-6 sm:h-7 sm:w-7"
+                      className="h-6 w-6 shrink-0 sm:h-7 sm:w-7"
                       style={{ color: settings.primaryColor }}
                     />
                     <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-bold text-white">
@@ -228,7 +228,8 @@ function HeroDashboard({ settings }) {
                   <div
                     className={`obm-dashboard-muted-line h-2 ${item.width} max-w-full rounded bg-white/25`}
                   />
-                  <div className="obm-dashboard-muted-line-soft mt-3 h-2 w-16 rounded bg-white/10" />
+
+                  <div className="obm-dashboard-muted-line-soft mt-3 h-2 w-16 max-w-full rounded bg-white/10" />
 
                   <p className="mt-4 text-xs font-semibold text-slate-400">
                     {item.title}
@@ -239,12 +240,12 @@ function HeroDashboard({ settings }) {
           </motion.div>
 
           <motion.div
-            className="obm-recommendation-box relative mt-5 rounded-2xl border p-4 sm:p-5"
+            className="obm-recommendation-box relative mt-5 overflow-hidden rounded-2xl border p-4 sm:p-5"
             style={{
               borderColor: `${settings.primaryColor}33`,
               backgroundColor: `${settings.primaryColor}14`,
             }}
-            whileHover={{ scale: 1.02 }}
+            whileHover={{ scale: 1.01 }}
           >
             <div
               className="absolute inset-x-6 top-0 h-px"
@@ -254,10 +255,11 @@ function HeroDashboard({ settings }) {
             />
 
             <p
-              className="flex items-center gap-2 text-sm font-bold"
+              className="flex flex-wrap items-center gap-2 text-sm font-bold"
               style={{ color: settings.primaryColor }}
             >
-              <WandSparkles className="h-4 w-4" /> OBM Recommendation
+              <WandSparkles className="h-4 w-4 shrink-0" />
+              OBM Recommendation
             </p>
 
             <p className="mt-2 text-sm leading-6 text-slate-300">
@@ -278,7 +280,7 @@ function StatCard({ value, label, settings, delay = 0 }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.55, delay }}
       whileHover={{ y: -6 }}
-      className="obm-stat-card rounded-3xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur sm:p-5"
+      className="obm-stat-card min-w-0 rounded-3xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur sm:p-5"
     >
       <p
         className="text-2xl font-black text-white sm:text-3xl"
@@ -306,14 +308,14 @@ function PillarCard({
     <motion.div
       variants={fadeUp}
       whileHover={{ y: -8, scale: 1.01 }}
-      className="group relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.035] p-5 transition sm:p-6 md:p-8"
+      className="group relative min-w-0 overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/[0.035] p-5 transition sm:rounded-[2rem] sm:p-6 md:p-8"
     >
       <div
-        className="absolute -right-24 -top-24 h-56 w-56 rounded-full blur-3xl transition group-hover:opacity-80"
+        className="absolute -right-24 -top-24 h-48 w-48 rounded-full blur-3xl transition group-hover:opacity-80 sm:h-56 sm:w-56"
         style={{ backgroundColor: `${color}18` }}
       />
 
-      <div className="relative mb-8 flex items-start gap-4 sm:items-center">
+      <div className="relative mb-7 flex items-start gap-4 sm:mb-8 sm:items-center">
         <motion.div
           className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl"
           style={{ backgroundColor: `${color}16`, color }}
@@ -322,8 +324,8 @@ function PillarCard({
           <Icon className="h-6 w-6" />
         </motion.div>
 
-        <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-slate-400 sm:text-sm">
+        <div className="min-w-0">
+          <p className="text-xs uppercase tracking-[0.18em] text-slate-400 sm:text-sm sm:tracking-[0.2em]">
             {eyebrow}
           </p>
           <h3 className="text-xl font-black text-white sm:text-2xl">
@@ -342,7 +344,7 @@ function ProcessStep({ step, index, settings }) {
     <motion.div
       variants={fadeUp}
       whileHover={{ y: -8 }}
-      className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-950 p-5 sm:p-6"
+      className="relative min-w-0 overflow-hidden rounded-3xl border border-white/10 bg-slate-950 p-5 sm:p-6"
     >
       <div
         className="absolute inset-x-0 top-0 h-px"
@@ -374,7 +376,7 @@ function IndustryCard({ item, settings }) {
     <motion.div
       variants={fadeUp}
       whileHover={{ x: 6, scale: 1.02 }}
-      className="group flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4"
+      className="group flex min-w-0 items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4"
     >
       <div
         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition group-hover:scale-110"
@@ -386,7 +388,9 @@ function IndustryCard({ item, settings }) {
         />
       </div>
 
-      <span className="font-medium text-slate-200">{item}</span>
+      <span className="min-w-0 break-words font-medium text-slate-200">
+        {item}
+      </span>
     </motion.div>
   );
 }
@@ -396,7 +400,7 @@ function PricingCard({ pkg, settings }) {
     <motion.div
       variants={fadeUp}
       whileHover={{ y: -10, scale: 1.015 }}
-      className="relative overflow-hidden rounded-3xl border p-6 sm:p-7"
+      className="relative min-w-0 overflow-hidden rounded-3xl border p-5 sm:p-7"
       style={
         pkg.featured
           ? {
@@ -429,31 +433,31 @@ function PricingCard({ pkg, settings }) {
         <h3 className="text-2xl font-black">{pkg.name}</h3>
 
         <p
-          className={`mt-3 text-sm ${
+          className={`mt-3 text-sm leading-6 ${
             pkg.featured ? "text-slate-800" : "text-slate-400"
           }`}
         >
           {pkg.desc}
         </p>
 
-        <p className="mt-6 text-3xl font-black">{pkg.price}</p>
+        <p className="mt-6 break-words text-3xl font-black">{pkg.price}</p>
 
         <ul className="mt-7 space-y-4">
           {pkg.features.map((feature) => (
             <li key={feature} className="flex items-start gap-3">
               <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
-              <span className="font-medium">{feature}</span>
+              <span className="min-w-0 font-medium">{feature}</span>
             </li>
           ))}
         </ul>
 
         <a
           href="#contact"
-          className={`mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 font-bold ${
+          className={`mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-center font-bold sm:px-6 ${
             pkg.featured ? "bg-slate-950 text-white" : "bg-white text-slate-950"
           }`}
         >
-          Request Proposal <ArrowRight className="h-5 w-5" />
+          Request Proposal <ArrowRight className="h-5 w-5 shrink-0" />
         </a>
       </div>
     </motion.div>
@@ -471,19 +475,19 @@ function WowStrip({ settings }) {
   ];
 
   return (
-    <section className="relative overflow-hidden border-y border-white/10 bg-white/[0.025] py-5">
+    <section className="relative overflow-hidden border-y border-white/10 bg-white/[0.025] py-4 sm:py-5">
       <motion.div
-        className="flex min-w-max gap-4"
+        className="flex w-max min-w-max gap-3 sm:gap-4"
         animate={{ x: ["0%", "-50%"] }}
         transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
       >
         {[...items, ...items, ...items].map(([label, Icon], index) => (
           <div
             key={`${label}-${index}`}
-            className="mx-2 inline-flex items-center gap-3 rounded-full border border-white/10 bg-slate-950/70 px-5 py-3 text-sm font-bold text-slate-200"
+            className="mx-1 inline-flex items-center gap-3 rounded-full border border-white/10 bg-slate-950/70 px-4 py-2.5 text-xs font-bold text-slate-200 sm:mx-2 sm:px-5 sm:py-3 sm:text-sm"
           >
             <Icon
-              className="h-4 w-4"
+              className="h-4 w-4 shrink-0"
               style={{ color: settings.primaryColor }}
             />
             {label}
@@ -536,7 +540,7 @@ export default function HomePage({
   };
 
   return (
-    <main className="min-h-screen overflow-hidden bg-slate-950 text-white">
+    <main className="min-h-screen w-full overflow-x-clip bg-slate-950 text-white">
       <PublicNav
         settings={settings}
         navigate={navigate}
@@ -548,11 +552,12 @@ export default function HomePage({
         <AnimatedGrid settings={settings} />
 
         <GlowOrb
-          className="-left-24 top-10 h-80 w-80 sm:h-96 sm:w-96"
+          className="-left-20 top-10 h-56 w-56 sm:-left-24 sm:h-96 sm:w-96"
           color={settings.primaryColor}
         />
+
         <GlowOrb
-          className="-right-24 top-44 h-80 w-80 sm:h-96 sm:w-96"
+          className="-right-20 top-44 h-56 w-56 sm:-right-24 sm:h-96 sm:w-96"
           color={settings.secondaryColor}
           delay={1.2}
         />
@@ -564,12 +569,12 @@ export default function HomePage({
           }}
         />
 
-        <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-5 sm:py-20 lg:grid-cols-[0.95fr_1.05fr] lg:py-24 xl:py-28">
+        <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-4 py-12 sm:px-5 sm:py-16 md:py-20 lg:grid-cols-[0.95fr_1.05fr] lg:gap-12 lg:py-24 xl:py-28">
           <motion.div
             variants={staggerContainer}
             initial="hidden"
             animate="visible"
-            className="max-w-3xl"
+            className="max-w-3xl min-w-0 text-center sm:text-left"
           >
             <motion.div variants={fadeUp}>
               <Badge settings={settings}>{settings.heroBadge}</Badge>
@@ -577,41 +582,41 @@ export default function HomePage({
 
             <motion.h1
               variants={fadeUp}
-              className="mt-7 text-4xl font-black leading-[0.95] tracking-tight sm:text-5xl md:text-6xl xl:text-7xl"
+              className="mt-6 break-words text-[clamp(2.35rem,11vw,4.5rem)] font-black leading-[0.96] tracking-tight sm:mt-7 md:text-6xl xl:text-7xl"
             >
               {settings.heroTitle}
             </motion.h1>
 
             <motion.p
               variants={fadeUp}
-              className="mt-6 max-w-xl text-base leading-8 text-slate-300 sm:text-lg"
+              className="mx-auto mt-5 max-w-xl text-base leading-7 text-slate-300 sm:mx-0 sm:mt-6 sm:text-lg sm:leading-8"
             >
               {settings.heroText}
             </motion.p>
 
             <motion.div
               variants={fadeUp}
-              className="mt-9 flex flex-col gap-4 sm:flex-row"
+              className="mt-8 flex flex-col gap-3 sm:mt-9 sm:flex-row sm:gap-4"
             >
               <motion.a
                 href="#contact"
                 whileHover={{ scale: 1.04, y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className="group inline-flex items-center justify-center gap-2 rounded-full px-7 py-4 font-bold text-slate-950 shadow-lg transition"
+                className="group inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-center font-bold text-slate-950 shadow-lg transition sm:w-auto sm:px-7"
                 style={{
                   backgroundColor: settings.primaryColor,
                   boxShadow: `0 18px 50px ${settings.primaryColor}2e`,
                 }}
               >
                 {settings.ctaPrimary}
-                <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" />
+                <ArrowRight className="h-5 w-5 shrink-0 transition group-hover:translate-x-1" />
               </motion.a>
 
               <motion.a
                 href="#services"
                 whileHover={{ scale: 1.04, y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className="inline-flex items-center justify-center rounded-full border border-white/15 px-7 py-4 font-semibold text-white transition hover:bg-white/10"
+                className="inline-flex w-full items-center justify-center rounded-full border border-white/15 px-6 py-4 text-center font-semibold text-white transition hover:bg-white/10 sm:w-auto sm:px-7"
               >
                 {settings.ctaSecondary}
               </motion.a>
@@ -621,7 +626,7 @@ export default function HomePage({
               variants={staggerContainer}
               initial="hidden"
               animate="visible"
-              className="mt-10 grid grid-cols-1 gap-4 border-t border-white/10 pt-8 sm:grid-cols-3"
+              className="mt-9 grid grid-cols-1 gap-3 border-t border-white/10 pt-7 sm:mt-10 sm:grid-cols-3 sm:gap-4 sm:pt-8"
             >
               <StatCard
                 value="360°"
@@ -644,15 +649,17 @@ export default function HomePage({
             </motion.div>
           </motion.div>
 
-          <HeroDashboard settings={settings} />
+          <div className="min-w-0">
+            <HeroDashboard settings={settings} />
+          </div>
         </div>
       </section>
 
       <WowStrip settings={settings} />
 
-      <section id="services" className="relative px-4 py-20 sm:px-5 lg:py-24">
+      <section id="services" className="relative px-4 py-16 sm:px-5 sm:py-20 lg:py-24">
         <GlowOrb
-          className="left-1/2 top-20 h-72 w-72 -translate-x-1/2"
+          className="left-1/2 top-20 h-56 w-56 -translate-x-1/2 sm:h-72 sm:w-72"
           color={settings.primaryColor}
         />
 
@@ -661,7 +668,7 @@ export default function HomePage({
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
+            viewport={{ once: true, amount: 0.25 }}
           >
             <SectionTitle
               settings={settings}
@@ -675,8 +682,8 @@ export default function HomePage({
             variants={staggerContainer}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.18 }}
-            className="mt-12 grid gap-6 lg:mt-14 lg:grid-cols-2 lg:gap-8"
+            viewport={{ once: true, amount: 0.16 }}
+            className="mt-10 grid min-w-0 gap-5 lg:mt-14 lg:grid-cols-2 lg:gap-8"
           >
             <PillarCard
               settings={settings}
@@ -716,7 +723,7 @@ export default function HomePage({
 
       <section
         id="process"
-        className="relative border-y border-white/10 bg-white/[0.03] px-4 py-20 sm:px-5 lg:py-24"
+        className="relative overflow-hidden border-y border-white/10 bg-white/[0.03] px-4 py-16 sm:px-5 sm:py-20 lg:py-24"
       >
         <AnimatedGrid settings={settings} />
 
@@ -725,7 +732,7 @@ export default function HomePage({
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
+            viewport={{ once: true, amount: 0.25 }}
           >
             <SectionTitle
               settings={settings}
@@ -739,8 +746,8 @@ export default function HomePage({
             variants={staggerContainer}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.18 }}
-            className="mt-12 grid gap-5 md:grid-cols-2 lg:mt-14 lg:grid-cols-3"
+            viewport={{ once: true, amount: 0.16 }}
+            className="mt-10 grid gap-5 sm:grid-cols-2 lg:mt-14 lg:grid-cols-3"
           >
             {process.map((step, index) => (
               <ProcessStep
@@ -754,22 +761,23 @@ export default function HomePage({
         </div>
       </section>
 
-      <section className="relative px-4 py-20 sm:px-5 lg:py-24">
+      <section className="relative px-4 py-16 sm:px-5 sm:py-20 lg:py-24">
         <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[0.9fr_1.1fr] md:items-center lg:gap-12">
           <motion.div
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
+            viewport={{ once: true, amount: 0.25 }}
+            className="min-w-0"
           >
             <p
-              className="mb-3 text-sm font-semibold uppercase tracking-[0.25em]"
+              className="mb-3 text-sm font-semibold uppercase tracking-[0.22em] sm:tracking-[0.25em]"
               style={{ color: settings.primaryColor }}
             >
               Industries
             </p>
 
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+            <h2 className="break-words text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
               Digital systems for growing businesses
             </h2>
 
@@ -802,8 +810,8 @@ export default function HomePage({
             variants={staggerContainer}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.18 }}
-            className="grid gap-4 sm:grid-cols-2"
+            viewport={{ once: true, amount: 0.16 }}
+            className="grid min-w-0 gap-4 sm:grid-cols-2"
           >
             {industries.map((item) => (
               <IndustryCard key={item} item={item} settings={settings} />
@@ -814,10 +822,10 @@ export default function HomePage({
 
       <section
         id="pricing"
-        className="relative bg-slate-900/60 px-4 py-20 sm:px-5 lg:py-24"
+        className="relative overflow-hidden bg-slate-900/60 px-4 py-16 sm:px-5 sm:py-20 lg:py-24"
       >
         <GlowOrb
-          className="right-0 top-10 h-72 w-72"
+          className="right-0 top-10 h-56 w-56 sm:h-72 sm:w-72"
           color={settings.secondaryColor}
         />
 
@@ -826,7 +834,7 @@ export default function HomePage({
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
+            viewport={{ once: true, amount: 0.25 }}
           >
             <SectionTitle
               settings={settings}
@@ -840,8 +848,8 @@ export default function HomePage({
             variants={staggerContainer}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.18 }}
-            className="mt-12 grid gap-6 lg:mt-14 lg:grid-cols-3"
+            viewport={{ once: true, amount: 0.16 }}
+            className="mt-10 grid gap-5 md:grid-cols-2 lg:mt-14 lg:grid-cols-3 lg:gap-6"
           >
             {packages.map((pkg) => (
               <PricingCard key={pkg.name} pkg={pkg} settings={settings} />
@@ -850,10 +858,10 @@ export default function HomePage({
         </div>
       </section>
 
-      <section id="contact" className="relative px-4 py-20 sm:px-5 lg:py-24">
-        <div className="relative mx-auto grid max-w-7xl gap-8 overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br from-slate-900 to-slate-950 p-5 sm:p-6 md:grid-cols-2 md:p-10">
+      <section id="contact" className="relative px-4 py-16 sm:px-5 sm:py-20 lg:py-24">
+        <div className="relative mx-auto grid max-w-7xl gap-8 overflow-hidden rounded-[1.5rem] border border-white/10 bg-gradient-to-br from-slate-900 to-slate-950 p-5 sm:rounded-[2rem] sm:p-6 md:grid-cols-2 md:p-10">
           <div
-            className="absolute -left-24 -top-24 h-64 w-64 rounded-full blur-3xl"
+            className="absolute -left-24 -top-24 h-56 w-56 rounded-full blur-3xl sm:h-64 sm:w-64"
             style={{ backgroundColor: `${settings.primaryColor}18` }}
           />
 
@@ -861,17 +869,17 @@ export default function HomePage({
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
-            className="relative"
+            viewport={{ once: true, amount: 0.25 }}
+            className="relative min-w-0"
           >
             <p
-              className="mb-3 text-sm font-semibold uppercase tracking-[0.25em]"
+              className="mb-3 text-sm font-semibold uppercase tracking-[0.22em] sm:tracking-[0.25em]"
               style={{ color: settings.primaryColor }}
             >
               Contact
             </p>
 
-            <h2 className="text-3xl font-black tracking-tight sm:text-4xl md:text-5xl">
+            <h2 className="break-words text-3xl font-black tracking-tight sm:text-4xl md:text-5xl">
               Ready to modernize your business?
             </h2>
 
@@ -882,28 +890,30 @@ export default function HomePage({
             </p>
 
             <div className="mt-8 space-y-4 text-slate-300">
-              <p className="flex items-center gap-3">
+              <p className="flex min-w-0 items-start gap-3">
                 <Mail
-                  className="h-5 w-5 shrink-0"
+                  className="mt-0.5 h-5 w-5 shrink-0"
                   style={{ color: settings.primaryColor }}
-                />{" "}
-                {settings.email}
+                />
+                <span className="min-w-0 break-words">{settings.email}</span>
               </p>
 
-              <p className="flex items-center gap-3">
+              <p className="flex min-w-0 items-start gap-3">
                 <Phone
-                  className="h-5 w-5 shrink-0"
+                  className="mt-0.5 h-5 w-5 shrink-0"
                   style={{ color: settings.primaryColor }}
-                />{" "}
-                {settings.phone}
+                />
+                <span className="min-w-0 break-words">{settings.phone}</span>
               </p>
 
-              <p className="flex items-center gap-3">
+              <p className="flex min-w-0 items-start gap-3">
                 <MapPin
-                  className="h-5 w-5 shrink-0"
+                  className="mt-0.5 h-5 w-5 shrink-0"
                   style={{ color: settings.primaryColor }}
-                />{" "}
-                {settings.location}
+                />
+                <span className="min-w-0 break-words">
+                  {settings.location}
+                </span>
               </p>
             </div>
           </motion.div>
@@ -913,8 +923,8 @@ export default function HomePage({
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
-            className="relative rounded-3xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur md:p-7"
+            viewport={{ once: true, amount: 0.25 }}
+            className="relative min-w-0 rounded-3xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur sm:p-5 md:p-7"
           >
             <div className="grid gap-4">
               <input
@@ -922,7 +932,7 @@ export default function HomePage({
                 onChange={(event) =>
                   updateContactForm("name", event.target.value)
                 }
-                className="rounded-2xl border border-white/10 bg-slate-950 px-4 py-4 outline-none placeholder:text-slate-500 focus:ring-2"
+                className="w-full min-w-0 rounded-2xl border border-white/10 bg-slate-950 px-4 py-4 outline-none placeholder:text-slate-500 focus:ring-2"
                 style={{ "--tw-ring-color": settings.primaryColor }}
                 placeholder="Your Name"
                 required
@@ -934,7 +944,7 @@ export default function HomePage({
                 onChange={(event) =>
                   updateContactForm("email", event.target.value)
                 }
-                className="rounded-2xl border border-white/10 bg-slate-950 px-4 py-4 outline-none placeholder:text-slate-500 focus:ring-2"
+                className="w-full min-w-0 rounded-2xl border border-white/10 bg-slate-950 px-4 py-4 outline-none placeholder:text-slate-500 focus:ring-2"
                 style={{ "--tw-ring-color": settings.primaryColor }}
                 placeholder="Email Address"
                 required
@@ -945,7 +955,7 @@ export default function HomePage({
                 onChange={(event) =>
                   updateContactForm("companyName", event.target.value)
                 }
-                className="rounded-2xl border border-white/10 bg-slate-950 px-4 py-4 outline-none placeholder:text-slate-500 focus:ring-2"
+                className="w-full min-w-0 rounded-2xl border border-white/10 bg-slate-950 px-4 py-4 outline-none placeholder:text-slate-500 focus:ring-2"
                 style={{ "--tw-ring-color": settings.primaryColor }}
                 placeholder="Company Name"
               />
@@ -955,7 +965,7 @@ export default function HomePage({
                 onChange={(event) =>
                   updateContactForm("serviceType", event.target.value)
                 }
-                className="rounded-2xl border border-white/10 bg-slate-950 px-4 py-4 outline-none focus:ring-2"
+                className="w-full min-w-0 rounded-2xl border border-white/10 bg-slate-950 px-4 py-4 outline-none focus:ring-2"
                 style={{ "--tw-ring-color": settings.primaryColor }}
               >
                 <option>Product Engineering</option>
@@ -971,7 +981,7 @@ export default function HomePage({
                 onChange={(event) =>
                   updateContactForm("message", event.target.value)
                 }
-                className="min-h-32 rounded-2xl border border-white/10 bg-slate-950 px-4 py-4 outline-none placeholder:text-slate-500 focus:ring-2"
+                className="min-h-32 w-full min-w-0 resize-y rounded-2xl border border-white/10 bg-slate-950 px-4 py-4 outline-none placeholder:text-slate-500 focus:ring-2"
                 style={{ "--tw-ring-color": settings.primaryColor }}
                 placeholder="Tell us about your project"
                 required
@@ -997,11 +1007,11 @@ export default function HomePage({
                   y: contactSubmitting ? 0 : -2,
                 }}
                 whileTap={{ scale: contactSubmitting ? 1 : 0.98 }}
-                className="inline-flex items-center justify-center gap-2 rounded-full px-7 py-4 font-black text-slate-950 transition disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-center font-black text-slate-950 transition disabled:cursor-not-allowed disabled:opacity-60 sm:px-7"
                 style={{ backgroundColor: settings.primaryColor }}
               >
-                {contactSubmitting ? "Sending..." : "Send Inquiry"}{" "}
-                <Rocket className="h-5 w-5" />
+                {contactSubmitting ? "Sending..." : "Send Inquiry"}
+                <Rocket className="h-5 w-5 shrink-0" />
               </motion.button>
             </div>
           </motion.form>
@@ -1009,12 +1019,12 @@ export default function HomePage({
       </section>
 
       <footer className="border-t border-white/10 px-4 py-8 sm:px-5">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 text-center text-sm text-slate-400 md:flex-row md:text-left">
-          <p>
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 text-center text-sm text-slate-400 md:flex-row md:text-left">
+          <p className="break-words">
             © {new Date().getFullYear()} {settings.siteName}. All rights
             reserved.
           </p>
-          <p>{settings.footerText}</p>
+          <p className="break-words">{settings.footerText}</p>
         </div>
       </footer>
     </main>

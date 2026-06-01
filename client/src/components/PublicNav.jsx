@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
@@ -12,6 +12,35 @@ import {
 
 import LogoMark from "./LogoMark.jsx";
 
+const FALLBACK_SETTINGS = {
+  siteName: "OBM",
+  tagline: "AI Consultancy & Digital Transformation",
+  logo: "",
+  primaryColor: "#22d3ee",
+  secondaryColor: "#2563eb",
+};
+
+function SafeLogo({ settings, variant = "navbar", className = "" }) {
+  const [logoFailed, setLogoFailed] = useState(false);
+
+  const logoUrl = String(settings?.logo || "").trim();
+  const hasLogo = Boolean(logoUrl) && !logoFailed;
+
+  if (hasLogo) {
+    return (
+      <img
+        src={logoUrl}
+        alt={settings?.siteName || "OBM"}
+        className={`h-10 w-10 rounded-xl object-contain sm:h-11 sm:w-11 ${className}`}
+        loading="eager"
+        onError={() => setLogoFailed(true)}
+      />
+    );
+  }
+
+  return <LogoMark settings={settings} variant={variant} />;
+}
+
 export default function PublicNav({
   settings,
   navigate,
@@ -20,6 +49,21 @@ export default function PublicNav({
 }) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+
+  const safeSettings = useMemo(
+    () => ({
+      ...FALLBACK_SETTINGS,
+      ...(settings || {}),
+      siteName: settings?.siteName || FALLBACK_SETTINGS.siteName,
+      tagline: settings?.tagline || FALLBACK_SETTINGS.tagline,
+      logo: settings?.logo || FALLBACK_SETTINGS.logo,
+      primaryColor:
+        settings?.primaryColor || FALLBACK_SETTINGS.primaryColor,
+      secondaryColor:
+        settings?.secondaryColor || FALLBACK_SETTINGS.secondaryColor,
+    }),
+    [settings],
+  );
 
   const isLight = themeMode === "light";
 
@@ -42,7 +86,35 @@ export default function PublicNav({
     };
   }, [open]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const closeMenu = () => setOpen(false);
+
+  const goHome = () => {
+    closeMenu();
+
+    if (typeof navigate === "function") {
+      navigate("/");
+    }
+  };
+
+  const goAdmin = () => {
+    closeMenu();
+
+    if (typeof navigate === "function") {
+      navigate("/admin");
+    }
+  };
 
   const navLinks = [
     { label: "Services", href: "#services" },
@@ -66,43 +138,42 @@ export default function PublicNav({
   return (
     <>
       <header
-        className={`sticky top-0 z-50 border-b transition-all duration-300 ${
+        className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ${
           isLight
             ? scrolled
               ? "border-slate-200 bg-white/90 shadow-xl shadow-slate-200/40 backdrop-blur-2xl"
               : "border-slate-200 bg-white/75 backdrop-blur-xl"
             : scrolled
-              ? "border-white/10 bg-slate-950/88 shadow-2xl shadow-black/20 backdrop-blur-2xl"
+              ? "border-white/10 bg-slate-950/90 shadow-2xl shadow-black/20 backdrop-blur-2xl"
               : "border-white/5 bg-slate-950/70 backdrop-blur-xl"
         }`}
       >
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-5 lg:py-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-5 lg:py-4">
           <button
-            onClick={() => {
-              closeMenu();
-              navigate("/");
-            }}
-            className="group flex min-w-0 items-center gap-3 text-left sm:gap-4"
+            type="button"
+            onClick={goHome}
+            className="group flex min-w-0 flex-1 items-center gap-3 text-left sm:gap-4 md:flex-none"
             aria-label="Go to home"
           >
             <div className="shrink-0 transition duration-300 group-hover:scale-105">
-              <LogoMark settings={settings} variant="navbar" />
+              <SafeLogo settings={safeSettings} variant="navbar" />
             </div>
 
-            <div className="hidden min-w-0 sm:block">
+            <div className="min-w-0">
               <p
-                className={`truncate text-base font-black leading-none sm:text-lg ${
+                className={`max-w-[130px] truncate text-base font-black leading-none sm:max-w-[220px] sm:text-lg lg:max-w-none ${
                   isLight ? "text-slate-950" : "text-white"
                 }`}
               >
-                {settings.siteName}
+                {safeSettings.siteName}
               </p>
+
               <p
-                className={`mt-1 max-w-[220px] truncate text-xs lg:max-w-none ${
+                className={`mt-1 hidden max-w-[190px] truncate text-xs sm:block lg:max-w-[260px] xl:max-w-none ${
                   isLight ? "text-slate-500" : "text-slate-400"
                 }`}
               >
-                {settings.tagline}
+                {safeSettings.tagline}
               </p>
             </div>
           </button>
@@ -113,6 +184,7 @@ export default function PublicNav({
                 ? "border-slate-200 bg-slate-950/[0.03]"
                 : "border-white/10 bg-white/[0.035]"
             }`}
+            aria-label="Main navigation"
           >
             {navLinks.map((item) => (
               <a key={item.label} href={item.href} className={desktopLinkClass}>
@@ -121,7 +193,7 @@ export default function PublicNav({
             ))}
           </nav>
 
-          <div className="hidden items-center gap-3 md:flex">
+          <div className="hidden shrink-0 items-center gap-3 md:flex">
             <button
               type="button"
               onClick={toggleTheme}
@@ -129,12 +201,17 @@ export default function PublicNav({
               aria-label="Toggle dark and light mode"
               title={isLight ? "Switch to dark mode" : "Switch to light mode"}
             >
-              {isLight ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+              {isLight ? (
+                <Moon className="h-4 w-4" />
+              ) : (
+                <Sun className="h-4 w-4" />
+              )}
             </button>
 
             <button
-              onClick={() => navigate("/admin")}
-              className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-bold transition ${
+              type="button"
+              onClick={goAdmin}
+              className={`hidden items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-bold transition xl:inline-flex ${
                 isLight
                   ? "border-slate-200 bg-white text-slate-950 hover:bg-slate-100"
                   : "border-white/10 bg-white/[0.03] text-white hover:bg-white/10"
@@ -146,18 +223,19 @@ export default function PublicNav({
 
             <a
               href="#contact"
-              className="group inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-black text-slate-950 shadow-lg transition hover:-translate-y-0.5"
+              className="group inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-black text-slate-950 shadow-lg transition hover:-translate-y-0.5 xl:px-5"
               style={{
-                backgroundColor: settings.primaryColor,
-                boxShadow: `0 16px 40px ${settings.primaryColor}24`,
+                backgroundColor: safeSettings.primaryColor,
+                boxShadow: `0 16px 40px ${safeSettings.primaryColor}24`,
               }}
             >
-              Book Consultation
-              <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+              <span className="hidden lg:inline">Book Consultation</span>
+              <span className="lg:hidden">Consult</span>
+              <ArrowRight className="h-4 w-4 shrink-0 transition group-hover:translate-x-0.5" />
             </a>
           </div>
 
-          <div className="flex items-center gap-2 md:hidden">
+          <div className="flex shrink-0 items-center gap-2 md:hidden">
             <button
               type="button"
               onClick={toggleTheme}
@@ -165,13 +243,19 @@ export default function PublicNav({
               aria-label="Toggle dark and light mode"
               title={isLight ? "Switch to dark mode" : "Switch to light mode"}
             >
-              {isLight ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+              {isLight ? (
+                <Moon className="h-5 w-5" />
+              ) : (
+                <Sun className="h-5 w-5" />
+              )}
             </button>
 
             <button
+              type="button"
               onClick={() => setOpen((value) => !value)}
               className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl border transition ${iconButtonClass}`}
               aria-label={open ? "Close menu" : "Open menu"}
+              aria-expanded={open}
             >
               {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
@@ -182,7 +266,7 @@ export default function PublicNav({
       <AnimatePresence>
         {open && (
           <motion.div
-            className={`fixed inset-0 z-40 backdrop-blur-xl md:hidden ${
+            className={`fixed inset-0 z-40 overflow-y-auto px-4 pb-6 pt-24 backdrop-blur-xl md:hidden ${
               isLight ? "bg-white/85" : "bg-slate-950/80"
             }`}
             initial={{ opacity: 0 }}
@@ -194,43 +278,47 @@ export default function PublicNav({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -18 }}
               transition={{ duration: 0.22, ease: "easeOut" }}
-              className={`mx-4 mt-24 overflow-hidden rounded-[2rem] border p-5 shadow-2xl ${
+              className={`relative mx-auto w-full max-w-md overflow-hidden rounded-[1.75rem] border p-5 shadow-2xl ${
                 isLight
                   ? "border-slate-200 bg-white"
                   : "border-white/10 bg-slate-950"
               }`}
             >
               <div
-                className="absolute left-6 top-28 h-40 w-40 rounded-full blur-3xl"
-                style={{ backgroundColor: `${settings.primaryColor}18` }}
+                className="absolute -left-10 -top-10 h-40 w-40 rounded-full blur-3xl"
+                style={{ backgroundColor: `${safeSettings.primaryColor}18` }}
               />
 
               <div className="relative">
                 <div
-                  className={`mb-5 flex items-center gap-3 border-b pb-5 ${
+                  className={`mb-5 flex min-w-0 items-center gap-3 border-b pb-5 ${
                     isLight ? "border-slate-200" : "border-white/10"
                   }`}
                 >
-                  <LogoMark settings={settings} variant="navbar" />
+                  <div className="shrink-0">
+                    <SafeLogo settings={safeSettings} variant="navbar" />
+                  </div>
+
                   <div className="min-w-0">
                     <p
                       className={`truncate text-lg font-black ${
                         isLight ? "text-slate-950" : "text-white"
                       }`}
                     >
-                      {settings.siteName}
+                      {safeSettings.siteName}
                     </p>
+
                     <p
                       className={`truncate text-xs ${
                         isLight ? "text-slate-500" : "text-slate-400"
                       }`}
                     >
-                      {settings.tagline}
+                      {safeSettings.tagline}
                     </p>
                   </div>
                 </div>
 
-                <nav className="grid gap-3">
+                <nav className="grid gap-3" aria-label="Mobile navigation">
                   {navLinks.map((item) => (
                     <a
                       key={item.label}
@@ -239,7 +327,7 @@ export default function PublicNav({
                       className={mobileLinkClass}
                     >
                       <span>{item.label}</span>
-                      <ArrowRight className="h-4 w-4 text-slate-500" />
+                      <ArrowRight className="h-4 w-4 shrink-0 text-slate-500" />
                     </a>
                   ))}
                 </nav>
@@ -249,17 +337,15 @@ export default function PublicNav({
                     href="#contact"
                     onClick={closeMenu}
                     className="inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-4 text-sm font-black text-slate-950"
-                    style={{ backgroundColor: settings.primaryColor }}
+                    style={{ backgroundColor: safeSettings.primaryColor }}
                   >
                     <PhoneCall className="h-4 w-4" />
                     Book Consultation
                   </a>
 
                   <button
-                    onClick={() => {
-                      closeMenu();
-                      navigate("/admin");
-                    }}
+                    type="button"
+                    onClick={goAdmin}
                     className={`inline-flex items-center justify-center gap-2 rounded-2xl border px-5 py-4 text-sm font-bold transition ${
                       isLight
                         ? "border-slate-200 text-slate-950 hover:bg-slate-100"

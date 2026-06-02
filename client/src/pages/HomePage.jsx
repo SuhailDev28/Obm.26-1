@@ -56,6 +56,16 @@ const FALLBACK_SETTINGS = {
   secondaryColor: "#2563eb",
   accentColor: "#a855f7",
 
+  lightPrimaryColor: "#2563eb",
+  lightSecondaryColor: "#7c3aed",
+  lightAccentColor: "#0891b2",
+  lightBackgroundColor: "#f8fafc",
+  lightSurfaceColor: "#ffffff",
+  lightTextColor: "#0f172a",
+  lightMutedTextColor: "#475569",
+  lightIconColor: "#1d4ed8",
+  lightBorderColor: "#e2e8f0",
+
   heroBadge: "AI Consultancy & Digital Transformation",
   heroTitle: "Build smarter digital systems for your business",
   heroText:
@@ -412,11 +422,7 @@ function SocialIconLink({
     >
       <span
         className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 transition group-hover:scale-110"
-        style={{
-          color: settings.isLightMode
-            ? settings.iconColor
-            : platform.brandColor || settings.iconColor || settings.primaryColor,
-        }}
+        style={{ color: settings.iconColor || settings.primaryColor }}
       >
         <Icon className="h-3.5 w-3.5" />
       </span>
@@ -594,7 +600,7 @@ function HeroDashboard({ settings }) {
                   <div className="mb-5 flex items-center justify-between gap-3">
                     <Icon
                       className="h-6 w-6 shrink-0 sm:h-7 sm:w-7"
-                      style={{ color: settings.primaryColor }}
+                      style={{ color: settings.iconColor || settings.primaryColor }}
                     />
 
                     <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-bold text-white">
@@ -633,7 +639,7 @@ function HeroDashboard({ settings }) {
 
             <p
               className="flex flex-wrap items-center gap-2 text-sm font-bold"
-              style={{ color: settings.primaryColor }}
+              style={{ color: settings.iconColor || settings.primaryColor }}
             >
               <WandSparkles className="h-4 w-4 shrink-0" />
               OBM Recommendation
@@ -761,7 +767,7 @@ function IndustryCard({ item, settings }) {
       >
         <CheckCircle2
           className="h-5 w-5"
-          style={{ color: settings.primaryColor }}
+          style={{ color: settings.iconColor || settings.primaryColor }}
         />
       </div>
 
@@ -865,7 +871,7 @@ function WowStrip({ settings }) {
           >
             <Icon
               className="h-4 w-4 shrink-0"
-              style={{ color: settings.primaryColor }}
+              style={{ color: settings.iconColor || settings.primaryColor }}
             />
             {label}
           </div>
@@ -889,6 +895,24 @@ export default function HomePage({
       secondaryColor:
         settings?.secondaryColor || FALLBACK_SETTINGS.secondaryColor,
       accentColor: settings?.accentColor || FALLBACK_SETTINGS.accentColor,
+      lightPrimaryColor:
+        settings?.lightPrimaryColor || FALLBACK_SETTINGS.lightPrimaryColor,
+      lightSecondaryColor:
+        settings?.lightSecondaryColor || FALLBACK_SETTINGS.lightSecondaryColor,
+      lightAccentColor:
+        settings?.lightAccentColor || FALLBACK_SETTINGS.lightAccentColor,
+      lightBackgroundColor:
+        settings?.lightBackgroundColor || FALLBACK_SETTINGS.lightBackgroundColor,
+      lightSurfaceColor:
+        settings?.lightSurfaceColor || FALLBACK_SETTINGS.lightSurfaceColor,
+      lightTextColor:
+        settings?.lightTextColor || FALLBACK_SETTINGS.lightTextColor,
+      lightMutedTextColor:
+        settings?.lightMutedTextColor || FALLBACK_SETTINGS.lightMutedTextColor,
+      lightIconColor:
+        settings?.lightIconColor || FALLBACK_SETTINGS.lightIconColor,
+      lightBorderColor:
+        settings?.lightBorderColor || FALLBACK_SETTINGS.lightBorderColor,
       siteName: settings?.siteName || FALLBACK_SETTINGS.siteName,
       heroBadge: settings?.heroBadge || FALLBACK_SETTINGS.heroBadge,
       heroTitle: settings?.heroTitle || FALLBACK_SETTINGS.heroTitle,
@@ -919,37 +943,44 @@ export default function HomePage({
 
   const isLightMode = themeMode === "light";
 
-  const contrastAccentColor = useMemo(
-    () =>
-      getReadableAccentColor(
-        safeSettings.primaryColor,
-        safeSettings.secondaryColor,
-        isLightMode,
-      ),
-    [safeSettings.primaryColor, safeSettings.secondaryColor, isLightMode],
-  );
+  const visualSettings = useMemo(() => {
+    const modeColors = isLightMode
+      ? {
+          primaryColor: safeSettings.lightPrimaryColor,
+          secondaryColor: safeSettings.lightSecondaryColor,
+          accentColor: safeSettings.lightAccentColor,
+          backgroundColor: safeSettings.lightBackgroundColor,
+          surfaceColor: safeSettings.lightSurfaceColor,
+          textColor: safeSettings.lightTextColor,
+          mutedTextColor: safeSettings.lightMutedTextColor,
+          iconColor: safeSettings.lightIconColor,
+          borderColor: safeSettings.lightBorderColor,
+        }
+      : {
+          primaryColor: safeSettings.primaryColor,
+          secondaryColor: safeSettings.secondaryColor,
+          accentColor: safeSettings.accentColor,
+          backgroundColor: "#020617",
+          surfaceColor: "#0f172a",
+          textColor: "#ffffff",
+          mutedTextColor: "#cbd5e1",
+          iconColor: safeSettings.primaryColor,
+          borderColor: "rgba(255, 255, 255, 0.1)",
+        };
 
-  const solidButtonTextColor = useMemo(
-    () => getSolidButtonTextColor(contrastAccentColor),
-    [contrastAccentColor],
-  );
-
-  const visualSettings = useMemo(
-    () => ({
+    return {
       ...safeSettings,
+      ...modeColors,
       isLightMode,
       brandPrimaryColor: safeSettings.primaryColor,
       brandSecondaryColor: safeSettings.secondaryColor,
-      primaryColor: isLightMode ? contrastAccentColor : safeSettings.primaryColor,
-      secondaryColor: isLightMode
-        ? contrastAccentColor
-        : safeSettings.secondaryColor,
-      accentColor: isLightMode ? contrastAccentColor : safeSettings.accentColor,
-      iconColor: isLightMode ? contrastAccentColor : safeSettings.primaryColor,
-      solidButtonTextColor,
-    }),
-    [safeSettings, isLightMode, contrastAccentColor, solidButtonTextColor],
-  );
+      brandAccentColor: safeSettings.accentColor,
+      lightPrimaryColor: safeSettings.lightPrimaryColor,
+      lightSecondaryColor: safeSettings.lightSecondaryColor,
+      lightAccentColor: safeSettings.lightAccentColor,
+      solidButtonTextColor: getSolidButtonTextColor(modeColors.primaryColor),
+    };
+  }, [safeSettings, isLightMode]);
 
   const activeSocialLinks = useMemo(
     () => getActiveSocialLinks(visualSettings),
@@ -997,96 +1028,119 @@ export default function HomePage({
         isLightMode ? "obm-home-light" : "obm-home-dark"
       } min-h-screen w-full overflow-x-clip bg-slate-950 text-white`}
       style={{
-        "--obm-contrast-icon": visualSettings.iconColor,
+        "--obm-primary": visualSettings.primaryColor,
+        "--obm-secondary": visualSettings.secondaryColor,
+        "--obm-accent": visualSettings.accentColor,
+        "--obm-bg": visualSettings.backgroundColor,
+        "--obm-surface": visualSettings.surfaceColor,
+        "--obm-text": visualSettings.textColor,
+        "--obm-muted": visualSettings.mutedTextColor,
+        "--obm-icon": visualSettings.iconColor,
+        "--obm-border": visualSettings.borderColor,
         "--obm-solid-button-text": visualSettings.solidButtonTextColor,
+        backgroundColor: visualSettings.backgroundColor,
+        color: visualSettings.textColor,
       }}
     >
-      {isLightMode && (
-        <style>{`
-          .obm-home-light {
-            background: linear-gradient(180deg, #f8fafc 0%, #ffffff 42%, #f8fafc 100%) !important;
-            color: #0f172a !important;
-          }
+      <style>{`
+        .obm-home-page {
+          background: radial-gradient(circle at top left, color-mix(in srgb, var(--obm-primary) 14%, transparent), transparent 34%),
+            radial-gradient(circle at top right, color-mix(in srgb, var(--obm-secondary) 12%, transparent), transparent 36%),
+            var(--obm-bg) !important;
+          color: var(--obm-text) !important;
+        }
 
-          .obm-home-light [class*="bg-slate-950"],
-          .obm-home-light [class*="bg-slate-900"],
-          .obm-home-light [class*="bg-slate-800"],
-          .obm-home-light [class*="bg-white/"],
-          .obm-home-light [class*="bg-white\\/"] {
-            background-color: rgba(255, 255, 255, 0.92) !important;
-          }
+        .obm-home-page svg {
+          color: inherit;
+        }
 
-          .obm-home-light [class*="from-slate-900"],
-          .obm-home-light [class*="to-slate-950"],
-          .obm-home-light [class*="bg-gradient-to-br"] {
-            background-image: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
-          }
+        .obm-home-page .obm-themed-icon,
+        .obm-home-page [data-obm-icon="true"] {
+          color: var(--obm-icon) !important;
+        }
 
-          .obm-home-light [class*="border-white/"],
-          .obm-home-light [class*="border-white\\/"] {
-            border-color: rgba(15, 23, 42, 0.12) !important;
-          }
+        .obm-home-light [class*="bg-slate-950"],
+        .obm-home-light [class*="bg-slate-900"],
+        .obm-home-light [class*="bg-slate-800"],
+        .obm-home-light [class*="bg-white/"],
+        .obm-home-light [class*="bg-white\/"] {
+          background-color: color-mix(in srgb, var(--obm-surface) 94%, transparent) !important;
+        }
 
-          .obm-home-light .text-white,
-          .obm-home-light [class*="text-white"] {
-            color: #0f172a !important;
-          }
+        .obm-home-light [class*="from-slate-900"],
+        .obm-home-light [class*="to-slate-950"],
+        .obm-home-light [class*="bg-gradient-to-br"] {
+          background-image: linear-gradient(135deg, var(--obm-surface) 0%, var(--obm-bg) 100%) !important;
+        }
 
-          .obm-home-light [class*="text-slate-200"],
-          .obm-home-light [class*="text-slate-300"],
-          .obm-home-light [class*="text-slate-400"],
-          .obm-home-light [class*="text-slate-500"] {
-            color: #334155 !important;
-          }
+        .obm-home-light [class*="border-white/"],
+        .obm-home-light [class*="border-white\/"] {
+          border-color: var(--obm-border) !important;
+        }
 
-          .obm-home-light input,
-          .obm-home-light select,
-          .obm-home-light textarea {
-            background-color: #ffffff !important;
-            color: #0f172a !important;
-            border-color: rgba(15, 23, 42, 0.14) !important;
-          }
+        .obm-home-light .text-white,
+        .obm-home-light [class*="text-white"] {
+          color: var(--obm-text) !important;
+        }
 
-          .obm-home-light input::placeholder,
-          .obm-home-light textarea::placeholder {
-            color: #64748b !important;
-          }
+        .obm-home-light [class*="text-slate-200"],
+        .obm-home-light [class*="text-slate-300"],
+        .obm-home-light [class*="text-slate-400"],
+        .obm-home-light [class*="text-slate-500"] {
+          color: var(--obm-muted) !important;
+        }
 
-          .obm-home-light .obm-dashboard-shell,
-          .obm-home-light .obm-dashboard-inner,
-          .obm-home-light .obm-dashboard-card,
-          .obm-home-light .obm-recommendation-box,
-          .obm-home-light .obm-stat-card {
-            background: rgba(255, 255, 255, 0.94) !important;
-            border-color: rgba(15, 23, 42, 0.12) !important;
-            color: #0f172a !important;
-          }
+        .obm-home-light input,
+        .obm-home-light select,
+        .obm-home-light textarea {
+          background-color: var(--obm-surface) !important;
+          color: var(--obm-text) !important;
+          border-color: var(--obm-border) !important;
+        }
 
-          .obm-home-light .obm-dashboard-logo-box {
-            background: #ffffff !important;
-            border-color: rgba(15, 23, 42, 0.12) !important;
-          }
+        .obm-home-light input::placeholder,
+        .obm-home-light textarea::placeholder {
+          color: var(--obm-muted) !important;
+        }
 
-          .obm-home-light .obm-dashboard-muted-line {
-            background-color: rgba(15, 23, 42, 0.18) !important;
-          }
+        .obm-home-light .obm-dashboard-shell,
+        .obm-home-light .obm-dashboard-inner,
+        .obm-home-light .obm-dashboard-card,
+        .obm-home-light .obm-recommendation-box,
+        .obm-home-light .obm-stat-card {
+          background: color-mix(in srgb, var(--obm-surface) 94%, transparent) !important;
+          border-color: var(--obm-border) !important;
+          color: var(--obm-text) !important;
+        }
 
-          .obm-home-light .obm-dashboard-muted-line-soft {
-            background-color: rgba(15, 23, 42, 0.1) !important;
-          }
+        .obm-home-light .obm-dashboard-logo-box {
+          background: var(--obm-surface) !important;
+          border-color: var(--obm-border) !important;
+        }
 
-          .obm-home-light a[style*="background-color"],
-          .obm-home-light button[style*="background-color"] {
-            color: var(--obm-solid-button-text) !important;
-          }
+        .obm-home-light .obm-dashboard-muted-line {
+          background-color: color-mix(in srgb, var(--obm-text) 18%, transparent) !important;
+        }
 
-          .obm-home-light a[style*="background-color"] svg,
-          .obm-home-light button[style*="background-color"] svg {
-            color: var(--obm-solid-button-text) !important;
-            stroke: currentColor !important;
-          }
-        `}</style>
-      )}
+        .obm-home-light .obm-dashboard-muted-line-soft {
+          background-color: color-mix(in srgb, var(--obm-text) 10%, transparent) !important;
+        }
+
+        .obm-home-light a[style*="background-color"],
+        .obm-home-light button[style*="background-color"],
+        .obm-home-dark a[style*="background-color"],
+        .obm-home-dark button[style*="background-color"] {
+          color: var(--obm-solid-button-text) !important;
+        }
+
+        .obm-home-light a[style*="background-color"] svg,
+        .obm-home-light button[style*="background-color"] svg,
+        .obm-home-dark a[style*="background-color"] svg,
+        .obm-home-dark button[style*="background-color"] svg {
+          color: var(--obm-solid-button-text) !important;
+          stroke: currentColor !important;
+        }
+      `}</style>
 
       <PublicNav
         settings={visualSettings}
@@ -1169,10 +1223,8 @@ export default function HomePage({
                 whileTap={{ scale: 0.98 }}
                 className="inline-flex w-full items-center justify-center rounded-full border border-white/15 px-6 py-4 text-center font-semibold text-white transition hover:bg-white/10 sm:w-auto sm:px-7"
                 style={{
-                  color: isLightMode ? "#0f172a" : "#ffffff",
-                  borderColor: isLightMode
-                    ? "rgba(15, 23, 42, 0.16)"
-                    : "rgba(255, 255, 255, 0.15)",
+                  color: visualSettings.textColor,
+                  borderColor: visualSettings.borderColor,
                 }}
               >
                 {visualSettings.ctaSecondary}
@@ -1349,7 +1401,7 @@ export default function HomePage({
           >
             <p
               className="mb-3 text-sm font-semibold uppercase tracking-[0.22em] sm:tracking-[0.25em]"
-              style={{ color: visualSettings.primaryColor }}
+              style={{ color: visualSettings.iconColor }}
             >
               Industries
             </p>
@@ -1375,7 +1427,7 @@ export default function HomePage({
                 >
                   <Icon
                     className="h-6 w-6"
-                    style={{ color: visualSettings.primaryColor }}
+                    style={{ color: visualSettings.iconColor }}
                   />
                   <p className="mt-3 font-bold text-white">{label}</p>
                 </div>
@@ -1458,7 +1510,7 @@ export default function HomePage({
           >
             <p
               className="mb-3 text-sm font-semibold uppercase tracking-[0.22em] sm:tracking-[0.25em]"
-              style={{ color: visualSettings.primaryColor }}
+              style={{ color: visualSettings.iconColor }}
             >
               Contact
             </p>
@@ -1480,7 +1532,7 @@ export default function HomePage({
               >
                 <Mail
                   className="mt-0.5 h-5 w-5 shrink-0"
-                  style={{ color: visualSettings.primaryColor }}
+                  style={{ color: visualSettings.iconColor }}
                 />
                 <span className="min-w-0 break-words">
                   {visualSettings.email}
@@ -1493,7 +1545,7 @@ export default function HomePage({
               >
                 <Phone
                   className="mt-0.5 h-5 w-5 shrink-0"
-                  style={{ color: visualSettings.primaryColor }}
+                  style={{ color: visualSettings.iconColor }}
                 />
                 <span className="min-w-0 break-words">
                   {visualSettings.phone}
@@ -1503,7 +1555,7 @@ export default function HomePage({
               <p className="flex min-w-0 items-start gap-3">
                 <MapPin
                   className="mt-0.5 h-5 w-5 shrink-0"
-                  style={{ color: visualSettings.primaryColor }}
+                  style={{ color: visualSettings.iconColor }}
                 />
                 <span className="min-w-0 break-words">
                   {visualSettings.location}

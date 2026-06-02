@@ -10,6 +10,23 @@ const router = express.Router();
 const uploadDir = path.join(process.cwd(), "src", "uploads");
 fs.mkdirSync(uploadDir, { recursive: true });
 
+const lightModeDefaultSettings = {
+  lightPrimaryColor: "#2563eb",
+  lightSecondaryColor: "#7c3aed",
+  lightAccentColor: "#0891b2",
+  lightBackgroundColor: "#f8fafc",
+  lightSurfaceColor: "#ffffff",
+  lightTextColor: "#0f172a",
+  lightMutedTextColor: "#475569",
+  lightIconColor: "#1d4ed8",
+  lightBorderColor: "#e2e8f0",
+};
+
+const effectiveDefaultSettings = {
+  ...effectiveDefaultSettings,
+  ...lightModeDefaultSettings,
+};
+
 const BOOLEAN_FIELDS = new Set(["contactEmailEnabled", "smtpEnabled"]);
 
 const PROTECTED_FIELDS = new Set(["key", "_id", "__v", "createdAt", "updatedAt", "updatedBy"]);
@@ -42,7 +59,7 @@ async function getSettingsDocument() {
     { key: "main" },
     {
       $setOnInsert: {
-        ...defaultSettings,
+        ...effectiveDefaultSettings,
         key: "main",
       },
     },
@@ -55,7 +72,7 @@ async function getSettingsDocument() {
 
 function mergeSettings(settings = {}) {
   return {
-    ...defaultSettings,
+    ...effectiveDefaultSettings,
     ...settings,
     smtpPass: settings.smtpPass || "",
   };
@@ -72,7 +89,7 @@ function normalizeBoolean(value) {
 }
 
 function sanitizeSettings(input = {}) {
-  const allowed = Object.keys(defaultSettings);
+  const allowed = Object.keys(effectiveDefaultSettings);
   const output = {};
 
   for (const key of allowed) {
@@ -226,7 +243,7 @@ router.post("/admin/reset-settings", requireAdmin, async (req, res, next) => {
       { key: "main" },
       {
         $set: {
-          ...defaultSettings,
+          ...effectiveDefaultSettings,
           updatedBy: req.admin?._id || null,
         },
         $setOnInsert: {
@@ -241,7 +258,7 @@ router.post("/admin/reset-settings", requireAdmin, async (req, res, next) => {
 
     if (
       existingSettings?.logo &&
-      existingSettings.logo !== defaultSettings.logo
+      existingSettings.logo !== effectiveDefaultSettings.logo
     ) {
       deleteOldLogoFile(existingSettings.logo);
     }

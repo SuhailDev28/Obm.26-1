@@ -12,6 +12,16 @@ export const defaultSettings = {
   secondaryColor: "#2563eb",
   accentColor: "#a855f7",
 
+  lightPrimaryColor: "#2563eb",
+  lightSecondaryColor: "#7c3aed",
+  lightAccentColor: "#0891b2",
+  lightBackgroundColor: "#f8fafc",
+  lightSurfaceColor: "#ffffff",
+  lightTextColor: "#0f172a",
+  lightMutedTextColor: "#475569",
+  lightIconColor: "#1d4ed8",
+  lightBorderColor: "#e2e8f0",
+
   heroBadge: "Complete technology partner for startups and enterprises",
   heroTitle: "Build smarter digital products with AI, software, and automation.",
   heroText:
@@ -95,6 +105,60 @@ const siteSettingSchema = new mongoose.Schema(
     accentColor: {
       type: String,
       default: defaultSettings.accentColor,
+      trim: true,
+    },
+
+    lightPrimaryColor: {
+      type: String,
+      default: defaultSettings.lightPrimaryColor,
+      trim: true,
+    },
+
+    lightSecondaryColor: {
+      type: String,
+      default: defaultSettings.lightSecondaryColor,
+      trim: true,
+    },
+
+    lightAccentColor: {
+      type: String,
+      default: defaultSettings.lightAccentColor,
+      trim: true,
+    },
+
+    lightBackgroundColor: {
+      type: String,
+      default: defaultSettings.lightBackgroundColor,
+      trim: true,
+    },
+
+    lightSurfaceColor: {
+      type: String,
+      default: defaultSettings.lightSurfaceColor,
+      trim: true,
+    },
+
+    lightTextColor: {
+      type: String,
+      default: defaultSettings.lightTextColor,
+      trim: true,
+    },
+
+    lightMutedTextColor: {
+      type: String,
+      default: defaultSettings.lightMutedTextColor,
+      trim: true,
+    },
+
+    lightIconColor: {
+      type: String,
+      default: defaultSettings.lightIconColor,
+      trim: true,
+    },
+
+    lightBorderColor: {
+      type: String,
+      default: defaultSettings.lightBorderColor,
       trim: true,
     },
 

@@ -162,6 +162,16 @@ export default function AdminDashboard({
   const secondaryColor = draft.secondaryColor || "#2563eb";
   const accentColor = draft.accentColor || "#a855f7";
 
+  const lightPrimaryColor = draft.lightPrimaryColor || "#2563eb";
+  const lightSecondaryColor = draft.lightSecondaryColor || "#7c3aed";
+  const lightAccentColor = draft.lightAccentColor || "#0891b2";
+  const lightBackgroundColor = draft.lightBackgroundColor || "#f8fafc";
+  const lightSurfaceColor = draft.lightSurfaceColor || "#ffffff";
+  const lightTextColor = draft.lightTextColor || "#0f172a";
+  const lightMutedTextColor = draft.lightMutedTextColor || "#475569";
+  const lightIconColor = draft.lightIconColor || "#1d4ed8";
+  const lightBorderColor = draft.lightBorderColor || "#e2e8f0";
+
   const heroPreviewStyle = useMemo(
     () => ({
       background: `
@@ -182,9 +192,31 @@ export default function AdminDashboard({
     [primaryColor, secondaryColor],
   );
 
+  const lightModePreviewStyle = useMemo(
+    () => ({
+      background: `
+        radial-gradient(circle at top left, ${lightPrimaryColor}18, transparent 32%),
+        radial-gradient(circle at bottom right, ${lightSecondaryColor}14, transparent 36%),
+        linear-gradient(135deg, ${lightBackgroundColor}, ${lightSurfaceColor})
+      `,
+      color: lightTextColor,
+      borderColor: lightBorderColor,
+      boxShadow: `0 24px 80px ${lightPrimaryColor}12`,
+    }),
+    [
+      lightPrimaryColor,
+      lightSecondaryColor,
+      lightBackgroundColor,
+      lightSurfaceColor,
+      lightTextColor,
+      lightBorderColor,
+    ],
+  );
+
   const menuItems = [
     [Settings, "Brand Settings", "Company name, tagline", "#brand"],
     [Palette, "Color Control", "Primary, secondary, accent", "#colors"],
+    [Palette, "Light Mode Colors", "Background, text, icons", "#light-colors"],
     [ImagePlus, "Logo Upload", "Header and footer logo", "#logo"],
     [Cpu, "Hero Content", "Landing page content", "#hero"],
     [Phone, "Contact Details", "Phone, email, location", "#contact-settings"],
@@ -542,6 +574,152 @@ export default function AdminDashboard({
                 value={accentColor}
                 onChange={(value) => update("accentColor", value)}
               />
+            </div>
+          </DashboardCard>
+
+          <DashboardCard
+            id="light-colors"
+            icon={Palette}
+            color={lightIconColor}
+            title="Light Mode Color Settings"
+            text="Control the public website light theme colors separately from the dark theme."
+          >
+            <div className="grid gap-6">
+              <div
+                className="rounded-[1.75rem] border p-5"
+                style={lightModePreviewStyle}
+              >
+                <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <p
+                      className="text-xs font-black uppercase tracking-[0.2em]"
+                      style={{ color: lightPrimaryColor }}
+                    >
+                      Light Mode Preview
+                    </p>
+
+                    <h3
+                      className="mt-3 text-2xl font-black tracking-tight"
+                      style={{ color: lightTextColor }}
+                    >
+                      Website light theme
+                    </h3>
+
+                    <p
+                      className="mt-2 max-w-xl text-sm leading-6"
+                      style={{ color: lightMutedTextColor }}
+                    >
+                      These colors are used when visitors switch the public
+                      website to light mode. Use a strong icon/contrast color if
+                      your main brand color is very bright.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-2">
+                    <PreviewDot label="Primary" value={lightPrimaryColor} />
+                    <PreviewDot label="Surface" value={lightSurfaceColor} />
+                    <PreviewDot label="Text" value={lightTextColor} />
+                    <PreviewDot label="Icon" value={lightIconColor} />
+                  </div>
+                </div>
+
+                <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                  {[
+                    ["Icon", Eye],
+                    ["Contact", Phone],
+                    ["Social", Share2],
+                  ].map(([label, Icon]) => (
+                    <div
+                      key={label}
+                      className="rounded-2xl border p-4"
+                      style={{
+                        backgroundColor: lightSurfaceColor,
+                        borderColor: lightBorderColor,
+                      }}
+                    >
+                      <Icon
+                        className="h-5 w-5"
+                        style={{ color: lightIconColor }}
+                      />
+                      <p
+                        className="mt-3 text-sm font-black"
+                        style={{ color: lightTextColor }}
+                      >
+                        {label}
+                      </p>
+                      <p
+                        className="mt-1 text-xs"
+                        style={{ color: lightMutedTextColor }}
+                      >
+                        Contrast checked preview
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid gap-5 md:grid-cols-3">
+                <ColorField
+                  label="Light Primary Color"
+                  value={lightPrimaryColor}
+                  onChange={(value) => update("lightPrimaryColor", value)}
+                />
+
+                <ColorField
+                  label="Light Secondary Color"
+                  value={lightSecondaryColor}
+                  onChange={(value) => update("lightSecondaryColor", value)}
+                />
+
+                <ColorField
+                  label="Light Accent Color"
+                  value={lightAccentColor}
+                  onChange={(value) => update("lightAccentColor", value)}
+                />
+
+                <ColorField
+                  label="Light Background Color"
+                  value={lightBackgroundColor}
+                  onChange={(value) => update("lightBackgroundColor", value)}
+                />
+
+                <ColorField
+                  label="Light Surface / Card Color"
+                  value={lightSurfaceColor}
+                  onChange={(value) => update("lightSurfaceColor", value)}
+                />
+
+                <ColorField
+                  label="Light Border Color"
+                  value={lightBorderColor}
+                  onChange={(value) => update("lightBorderColor", value)}
+                />
+
+                <ColorField
+                  label="Light Text Color"
+                  value={lightTextColor}
+                  onChange={(value) => update("lightTextColor", value)}
+                />
+
+                <ColorField
+                  label="Light Muted Text Color"
+                  value={lightMutedTextColor}
+                  onChange={(value) => update("lightMutedTextColor", value)}
+                />
+
+                <ColorField
+                  label="Light Icon / Contrast Color"
+                  value={lightIconColor}
+                  onChange={(value) => update("lightIconColor", value)}
+                />
+              </div>
+
+              <div className="rounded-[1.5rem] border border-cyan-400/20 bg-cyan-400/10 p-5 text-sm leading-6 text-cyan-100">
+                Recommended for light mode: keep background near white, text
+                dark, and icon/contrast color dark enough to be visible. This
+                prevents yellow or very bright brand colors from disappearing on
+                white sections.
+              </div>
             </div>
           </DashboardCard>
 
@@ -999,6 +1177,21 @@ function TogglePanel({ title, text, checked, onChange, color }) {
         />
       </span>
     </label>
+  );
+}
+
+function PreviewDot({ label, value }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white/70 p-2 text-center shadow-sm">
+      <div
+        className="mx-auto h-7 w-7 rounded-full border border-slate-200"
+        style={{ backgroundColor: value }}
+      />
+
+      <p className="mt-2 text-[9px] font-black uppercase tracking-wide text-slate-500">
+        {label}
+      </p>
+    </div>
   );
 }
 

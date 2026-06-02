@@ -477,7 +477,7 @@ export default function AdminDashboard({
                     Current Logo
                   </p>
 
-                  <div className="flex min-h-32 w-full items-center justify-center rounded-3xl bg-white p-5">
+                  <div className="flex min-h-32 w-full items-center justify-center rounded-3xl border border-white/10 bg-slate-950/70 p-5">
                     <AdminLogoBox settings={draft} size="preview" />
                   </div>
                 </div>
@@ -718,14 +718,14 @@ function AdminLogoBox({ settings, size = "header" }) {
 
   const boxClass =
     size === "lg"
-      ? "h-20 w-48 rounded-3xl p-3"
+      ? "h-20 w-52 rounded-3xl"
       : size === "preview"
-        ? "h-24 w-full rounded-3xl p-4"
-        : "h-12 w-28 rounded-2xl p-2";
+        ? "h-24 w-full rounded-3xl"
+        : "h-12 w-32 rounded-2xl";
 
   return (
     <div
-      className={`flex shrink-0 items-center justify-center overflow-hidden bg-white shadow-2xl ${boxClass}`}
+      className={`flex shrink-0 items-center justify-center overflow-hidden ${boxClass}`}
     >
       <div className="flex h-full w-full items-center justify-center">
         {logoUrl && !imageFailed ? (
@@ -736,7 +736,9 @@ function AdminLogoBox({ settings, size = "header" }) {
             onError={() => setImageFailed(true)}
           />
         ) : (
-          <LogoMark settings={settings} />
+          <div className="flex h-full w-full items-center justify-center">
+            <LogoMark settings={settings} />
+          </div>
         )}
       </div>
     </div>

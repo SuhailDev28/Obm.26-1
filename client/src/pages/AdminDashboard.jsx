@@ -160,10 +160,12 @@ export default function AdminDashboard({
       </div>
 
       <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/80 backdrop-blur-2xl">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white p-2 shadow-2xl">
-              <LogoMark settings={draft} variant="navbar" />
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex min-w-0 items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white p-2 shadow-2xl">
+              <div className="flex h-full w-full items-center justify-center overflow-hidden">
+                <LogoMark settings={draft} variant="navbar" />
+              </div>
             </div>
 
             <div className="min-w-0">
@@ -171,6 +173,7 @@ export default function AdminDashboard({
                 <p className="truncate text-lg font-black leading-none sm:text-xl">
                   OBM Admin Dashboard
                 </p>
+
                 <span
                   className="rounded-full px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-slate-950"
                   style={{ backgroundColor: primaryColor }}
@@ -187,6 +190,7 @@ export default function AdminDashboard({
 
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <button
+              type="button"
               onClick={() => navigate("/")}
               className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-white/10"
             >
@@ -195,6 +199,7 @@ export default function AdminDashboard({
             </button>
 
             <button
+              type="button"
               onClick={onLogout}
               className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-white/10"
             >
@@ -203,6 +208,7 @@ export default function AdminDashboard({
             </button>
 
             <button
+              type="button"
               onClick={handleSave}
               disabled={saving}
               className="inline-flex items-center gap-2 rounded-2xl px-5 py-2.5 text-sm font-black text-slate-950 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
@@ -220,7 +226,7 @@ export default function AdminDashboard({
           <div className="overflow-hidden rounded-[1.75rem] border border-white/10">
             <div className="p-5" style={heroPreviewStyle}>
               <div className="flex items-center justify-between gap-3">
-                <div className="rounded-3xl bg-white p-3">
+                <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-3xl bg-white p-3">
                   <LogoMark settings={draft} size="lg" />
                 </div>
 
@@ -272,6 +278,7 @@ export default function AdminDashboard({
           </nav>
 
           <button
+            type="button"
             onClick={handleReset}
             disabled={saving}
             className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-3xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm font-black text-red-200 transition hover:bg-red-400/20 disabled:cursor-not-allowed disabled:opacity-60"
@@ -330,6 +337,7 @@ export default function AdminDashboard({
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => navigate("/")}
                   className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-black transition hover:bg-white/10"
                 >
@@ -435,12 +443,13 @@ export default function AdminDashboard({
                     Current Logo
                   </p>
 
-                  <div className="flex min-h-32 w-full items-center justify-center rounded-3xl bg-white p-5">
+                  <div className="flex min-h-32 w-full items-center justify-center overflow-hidden rounded-3xl bg-white p-5">
                     <LogoMark settings={draft} size="lg" />
                   </div>
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => update("logo", "")}
                   className="mt-5 rounded-2xl border border-white/10 px-4 py-3 text-sm font-black text-slate-300 transition hover:bg-white/10 hover:text-white"
                 >
@@ -647,6 +656,7 @@ export default function AdminDashboard({
               </div>
 
               <button
+                type="button"
                 onClick={handleSave}
                 disabled={saving}
                 className="inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-4 font-black text-slate-950 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
@@ -700,9 +710,7 @@ function TogglePanel({ title, text, checked, onChange, color }) {
 
       <span
         className={`relative h-7 w-14 shrink-0 rounded-full border transition ${
-          checked
-            ? "border-transparent"
-            : "border-white/10 bg-white/10"
+          checked ? "border-transparent" : "border-white/10 bg-white/10"
         }`}
         style={checked ? { backgroundColor: color } : undefined}
       >
@@ -726,7 +734,11 @@ function TogglePanel({ title, text, checked, onChange, color }) {
 function ColorDot({ label, value }) {
   return (
     <div className="border-r border-white/10 p-3 last:border-r-0">
-      <div className="mx-auto h-6 w-6 rounded-full" style={{ backgroundColor: value }} />
+      <div
+        className="mx-auto h-6 w-6 rounded-full"
+        style={{ backgroundColor: value }}
+      />
+
       <p className="mt-2 truncate text-center text-[10px] font-bold uppercase tracking-wide text-slate-500">
         {label}
       </p>

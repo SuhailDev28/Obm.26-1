@@ -149,24 +149,22 @@ export default function AdminDashboard({
           className="absolute -left-32 top-10 h-80 w-80 rounded-full blur-3xl"
           style={{ backgroundColor: `${primaryColor}25` }}
         />
+
         <div
           className="absolute -right-32 top-80 h-96 w-96 rounded-full blur-3xl"
           style={{ backgroundColor: `${secondaryColor}22` }}
         />
+
         <div
           className="absolute bottom-0 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full blur-3xl"
           style={{ backgroundColor: `${accentColor}18` }}
         />
       </div>
 
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/80 backdrop-blur-2xl">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/85 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex min-w-0 items-center gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white p-2 shadow-2xl">
-              <div className="flex h-full w-full items-center justify-center overflow-hidden">
-                <LogoMark settings={draft} variant="navbar" />
-              </div>
-            </div>
+            <AdminLogoBox settings={draft} />
 
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
@@ -226,9 +224,7 @@ export default function AdminDashboard({
           <div className="overflow-hidden rounded-[1.75rem] border border-white/10">
             <div className="p-5" style={heroPreviewStyle}>
               <div className="flex items-center justify-between gap-3">
-                <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-3xl bg-white p-3">
-                  <LogoMark settings={draft} size="lg" />
-                </div>
+                <AdminLogoBox settings={draft} size="lg" />
 
                 <div className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold text-white/90 backdrop-blur">
                   Live Theme
@@ -443,8 +439,8 @@ export default function AdminDashboard({
                     Current Logo
                   </p>
 
-                  <div className="flex min-h-32 w-full items-center justify-center overflow-hidden rounded-3xl bg-white p-5">
-                    <LogoMark settings={draft} size="lg" />
+                  <div className="flex min-h-32 w-full items-center justify-center rounded-3xl bg-white p-5">
+                    <AdminLogoBox settings={draft} size="preview" />
                   </div>
                 </div>
 
@@ -670,6 +666,33 @@ export default function AdminDashboard({
         </div>
       </section>
     </main>
+  );
+}
+
+function AdminLogoBox({ settings, size = "header" }) {
+  const boxClass =
+    size === "lg"
+      ? "h-20 w-48 rounded-3xl p-3"
+      : size === "preview"
+        ? "h-24 w-full rounded-3xl p-4"
+        : "h-12 w-28 rounded-2xl p-2";
+
+  return (
+    <div
+      className={`flex shrink-0 items-center justify-center overflow-hidden bg-white shadow-2xl ${boxClass}`}
+    >
+      <div className="flex h-full w-full items-center justify-center">
+        {settings?.logo ? (
+          <img
+            src={settings.logo}
+            alt={settings.siteName || "OBM Logo"}
+            className="h-full w-full object-contain"
+          />
+        ) : (
+          <LogoMark settings={settings} />
+        )}
+      </div>
+    </div>
   );
 }
 

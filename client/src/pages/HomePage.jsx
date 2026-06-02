@@ -2,22 +2,32 @@ import React, { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
+  AtSign,
   BarChart3,
   Bot,
+  Camera,
   CheckCircle2,
+  Cpu,
   Database,
+  ExternalLink,
+  Globe2,
+  Hash,
+  Layers3,
+  Link2,
   Mail,
   MapPin,
+  MessageCircle,
+  MousePointer2,
+  Music2,
   Phone,
   Rocket,
+  Send,
+  Share2,
   ShieldCheck,
+  Video,
+  WandSparkles,
   Workflow,
   Zap,
-  Layers3,
-  Globe2,
-  MousePointer2,
-  Cpu,
-  WandSparkles,
 } from "lucide-react";
 
 import PublicNav from "../components/PublicNav.jsx";
@@ -32,20 +42,40 @@ import {
   productServices,
 } from "../config/siteData.js";
 
+const FALLBACK_API_ORIGIN = "http://localhost:5001";
+
 const FALLBACK_SETTINGS = {
   siteName: "OBM",
   logo: "",
   primaryColor: "#22d3ee",
   secondaryColor: "#2563eb",
+  accentColor: "#a855f7",
+
   heroBadge: "AI Consultancy & Digital Transformation",
   heroTitle: "Build smarter digital systems for your business",
   heroText:
     "OBM helps businesses launch modern websites, automation systems, dashboards, and AI-ready digital platforms.",
   ctaPrimary: "Start Your Project",
   ctaSecondary: "View Services",
+
   email: "info@obm.qa",
   phone: "+974 0000 0000",
   location: "Doha, Qatar",
+  websiteUrl: "https://obm.qa",
+
+  whatsapp: "",
+  facebook: "",
+  instagram: "",
+  linkedin: "",
+  xTwitter: "",
+  youtube: "",
+  tiktok: "",
+  threads: "",
+  snapchat: "",
+  pinterest: "",
+  telegram: "",
+  googleBusiness: "",
+
   footerText: "Creative digital solutions for modern businesses.",
 };
 
@@ -96,10 +126,148 @@ const defaultContactForm = {
   message: "",
 };
 
+const socialPlatforms = [
+  {
+    key: "facebook",
+    label: "Facebook",
+    icon: Share2,
+  },
+  {
+    key: "instagram",
+    label: "Instagram",
+    icon: Camera,
+  },
+  {
+    key: "linkedin",
+    label: "LinkedIn",
+    icon: Link2,
+  },
+  {
+    key: "xTwitter",
+    label: "X",
+    icon: Hash,
+  },
+  {
+    key: "youtube",
+    label: "YouTube",
+    icon: Video,
+  },
+  {
+    key: "tiktok",
+    label: "TikTok",
+    icon: Music2,
+  },
+  {
+    key: "threads",
+    label: "Threads",
+    icon: AtSign,
+  },
+  {
+    key: "snapchat",
+    label: "Snapchat",
+    icon: Camera,
+  },
+  {
+    key: "pinterest",
+    label: "Pinterest",
+    icon: Link2,
+  },
+  {
+    key: "telegram",
+    label: "Telegram",
+    icon: Send,
+  },
+  {
+    key: "whatsapp",
+    label: "WhatsApp",
+    icon: MessageCircle,
+  },
+  {
+    key: "googleBusiness",
+    label: "Google Business",
+    icon: MapPin,
+  },
+  {
+    key: "websiteUrl",
+    label: "Website",
+    icon: Globe2,
+  },
+];
+
+function getApiOrigin() {
+  const apiBase = String(import.meta.env.VITE_API_BASE || "")
+    .replace(/\/api\/?$/, "")
+    .replace(/\/$/, "");
+
+  return apiBase || FALLBACK_API_ORIGIN;
+}
+
+function resolveAssetUrl(path) {
+  const value = String(path || "").trim();
+
+  if (!value) return "";
+
+  if (
+    value.startsWith("http://") ||
+    value.startsWith("https://") ||
+    value.startsWith("data:") ||
+    value.startsWith("blob:")
+  ) {
+    return value;
+  }
+
+  const apiOrigin = getApiOrigin();
+
+  if (value.startsWith("/")) {
+    return `${apiOrigin}${value}`;
+  }
+
+  return `${apiOrigin}/${value}`;
+}
+
+function resolveSocialUrl(value, key = "") {
+  const raw = String(value || "").trim();
+
+  if (!raw) return "#";
+
+  if (key === "whatsapp") {
+    const cleaned = raw.replace(/\s+/g, "");
+
+    if (cleaned.startsWith("http://") || cleaned.startsWith("https://")) {
+      return cleaned;
+    }
+
+    const phone = cleaned.replace(/[^\d+]/g, "").replace(/^\+/, "");
+    return `https://wa.me/${phone}`;
+  }
+
+  if (key === "telegram") {
+    if (raw.startsWith("http://") || raw.startsWith("https://")) return raw;
+    return raw.startsWith("@")
+      ? `https://t.me/${raw.replace("@", "")}`
+      : `https://t.me/${raw}`;
+  }
+
+  if (raw.startsWith("http://") || raw.startsWith("https://")) {
+    return raw;
+  }
+
+  return `https://${raw}`;
+}
+
+function getActiveSocialLinks(settings) {
+  return socialPlatforms
+    .map((platform) => ({
+      ...platform,
+      value: String(settings?.[platform.key] || "").trim(),
+    }))
+    .filter((platform) => Boolean(platform.value));
+}
+
 function SafeLogo({ settings, size = "lg", className = "" }) {
   const [logoFailed, setLogoFailed] = useState(false);
 
-  const logoUrl = String(settings?.logo || "").trim();
+  const logoUrl = resolveAssetUrl(settings?.logo);
   const hasLogo = Boolean(logoUrl) && !logoFailed;
 
   if (hasLogo) {
@@ -107,7 +275,7 @@ function SafeLogo({ settings, size = "lg", className = "" }) {
       <img
         src={logoUrl}
         alt={settings?.siteName || "OBM"}
-        className={`h-10 w-10 rounded-xl object-contain sm:h-12 sm:w-12 ${className}`}
+        className={`h-10 w-auto max-w-[150px] object-contain sm:h-12 ${className}`}
         loading="eager"
         onError={() => setLogoFailed(true)}
       />
@@ -115,6 +283,67 @@ function SafeLogo({ settings, size = "lg", className = "" }) {
   }
 
   return <LogoMark settings={settings} size={size} />;
+}
+
+function SocialIconLink({
+  platform,
+  settings,
+  showLabel = false,
+  compact = false,
+}) {
+  const Icon = platform.icon;
+  const href = resolveSocialUrl(platform.value, platform.key);
+
+  return (
+    <motion.a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      aria-label={platform.label}
+      title={platform.label}
+      whileHover={{ y: -4, scale: 1.06 }}
+      whileTap={{ scale: 0.96 }}
+      className={`group inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.04] text-slate-300 transition hover:bg-white/10 hover:text-white ${
+        compact ? "h-10 w-10" : showLabel ? "px-4 py-3 text-sm" : "h-11 w-11"
+      }`}
+    >
+      <Icon
+        className="h-4 w-4 shrink-0 transition group-hover:scale-110"
+        style={{ color: settings.primaryColor }}
+      />
+
+      {showLabel && (
+        <span className="font-bold">
+          {platform.label}
+        </span>
+      )}
+    </motion.a>
+  );
+}
+
+function SocialLinksRow({
+  settings,
+  showLabel = false,
+  compact = false,
+  className = "",
+}) {
+  const activeSocialLinks = getActiveSocialLinks(settings);
+
+  if (!activeSocialLinks.length) return null;
+
+  return (
+    <div className={`flex flex-wrap items-center gap-2 ${className}`}>
+      {activeSocialLinks.map((platform) => (
+        <SocialIconLink
+          key={platform.key}
+          platform={platform}
+          settings={settings}
+          showLabel={showLabel}
+          compact={compact}
+        />
+      ))}
+    </div>
+  );
 }
 
 function GlowOrb({ className = "", color, delay = 0 }) {
@@ -214,7 +443,7 @@ function HeroDashboard({ settings }) {
 
           <div className="relative mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-              <div className="obm-dashboard-logo-box shrink-0 rounded-2xl border border-white/10 bg-slate-950 p-2 sm:p-3">
+              <div className="obm-dashboard-logo-box flex min-h-14 min-w-24 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-slate-950 p-2 sm:min-h-16 sm:min-w-28 sm:p-3">
                 <SafeLogo settings={settings} size="lg" />
               </div>
 
@@ -547,10 +776,10 @@ export default function HomePage({
     () => ({
       ...FALLBACK_SETTINGS,
       ...(settings || {}),
-      primaryColor:
-        settings?.primaryColor || FALLBACK_SETTINGS.primaryColor,
+      primaryColor: settings?.primaryColor || FALLBACK_SETTINGS.primaryColor,
       secondaryColor:
         settings?.secondaryColor || FALLBACK_SETTINGS.secondaryColor,
+      accentColor: settings?.accentColor || FALLBACK_SETTINGS.accentColor,
       siteName: settings?.siteName || FALLBACK_SETTINGS.siteName,
       heroBadge: settings?.heroBadge || FALLBACK_SETTINGS.heroBadge,
       heroTitle: settings?.heroTitle || FALLBACK_SETTINGS.heroTitle,
@@ -560,9 +789,28 @@ export default function HomePage({
       email: settings?.email || FALLBACK_SETTINGS.email,
       phone: settings?.phone || FALLBACK_SETTINGS.phone,
       location: settings?.location || FALLBACK_SETTINGS.location,
+      websiteUrl: settings?.websiteUrl || FALLBACK_SETTINGS.websiteUrl,
+      whatsapp: settings?.whatsapp || FALLBACK_SETTINGS.whatsapp,
+      facebook: settings?.facebook || FALLBACK_SETTINGS.facebook,
+      instagram: settings?.instagram || FALLBACK_SETTINGS.instagram,
+      linkedin: settings?.linkedin || FALLBACK_SETTINGS.linkedin,
+      xTwitter: settings?.xTwitter || FALLBACK_SETTINGS.xTwitter,
+      youtube: settings?.youtube || FALLBACK_SETTINGS.youtube,
+      tiktok: settings?.tiktok || FALLBACK_SETTINGS.tiktok,
+      threads: settings?.threads || FALLBACK_SETTINGS.threads,
+      snapchat: settings?.snapchat || FALLBACK_SETTINGS.snapchat,
+      pinterest: settings?.pinterest || FALLBACK_SETTINGS.pinterest,
+      telegram: settings?.telegram || FALLBACK_SETTINGS.telegram,
+      googleBusiness:
+        settings?.googleBusiness || FALLBACK_SETTINGS.googleBusiness,
       footerText: settings?.footerText || FALLBACK_SETTINGS.footerText,
     }),
     [settings],
+  );
+
+  const activeSocialLinks = useMemo(
+    () => getActiveSocialLinks(safeSettings),
+    [safeSettings],
   );
 
   const [contactForm, setContactForm] = useState(defaultContactForm);
@@ -682,6 +930,23 @@ export default function HomePage({
                 {safeSettings.ctaSecondary}
               </motion.a>
             </motion.div>
+
+            {activeSocialLinks.length > 0 && (
+              <motion.div
+                variants={fadeUp}
+                className="mt-6 flex flex-col items-center gap-3 sm:items-start"
+              >
+                <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-500">
+                  Connect with OBM
+                </p>
+
+                <SocialLinksRow
+                  settings={safeSettings}
+                  compact
+                  className="justify-center sm:justify-start"
+                />
+              </motion.div>
+            )}
 
             <motion.div
               variants={staggerContainer}
@@ -961,7 +1226,10 @@ export default function HomePage({
             </p>
 
             <div className="mt-8 space-y-4 text-slate-300">
-              <p className="flex min-w-0 items-start gap-3">
+              <a
+                href={`mailto:${safeSettings.email}`}
+                className="flex min-w-0 items-start gap-3 transition hover:text-white"
+              >
                 <Mail
                   className="mt-0.5 h-5 w-5 shrink-0"
                   style={{ color: safeSettings.primaryColor }}
@@ -969,9 +1237,12 @@ export default function HomePage({
                 <span className="min-w-0 break-words">
                   {safeSettings.email}
                 </span>
-              </p>
+              </a>
 
-              <p className="flex min-w-0 items-start gap-3">
+              <a
+                href={`tel:${String(safeSettings.phone || "").replace(/\s+/g, "")}`}
+                className="flex min-w-0 items-start gap-3 transition hover:text-white"
+              >
                 <Phone
                   className="mt-0.5 h-5 w-5 shrink-0"
                   style={{ color: safeSettings.primaryColor }}
@@ -979,7 +1250,7 @@ export default function HomePage({
                 <span className="min-w-0 break-words">
                   {safeSettings.phone}
                 </span>
-              </p>
+              </a>
 
               <p className="flex min-w-0 items-start gap-3">
                 <MapPin
@@ -991,6 +1262,31 @@ export default function HomePage({
                 </span>
               </p>
             </div>
+
+            {activeSocialLinks.length > 0 && (
+              <div className="mt-8 rounded-3xl border border-white/10 bg-white/[0.035] p-5">
+                <div className="mb-4 flex items-center gap-3">
+                  <div
+                    className="flex h-10 w-10 items-center justify-center rounded-2xl"
+                    style={{
+                      backgroundColor: `${safeSettings.primaryColor}18`,
+                      color: safeSettings.primaryColor,
+                    }}
+                  >
+                    <Share2 className="h-5 w-5" />
+                  </div>
+
+                  <div>
+                    <p className="font-black text-white">Social Media</p>
+                    <p className="text-xs text-slate-500">
+                      Follow and connect with OBM
+                    </p>
+                  </div>
+                </div>
+
+                <SocialLinksRow settings={safeSettings} showLabel />
+              </div>
+            )}
           </motion.div>
 
           <motion.form
@@ -1094,14 +1390,21 @@ export default function HomePage({
       </section>
 
       <footer className="border-t border-white/10 px-4 py-8 sm:px-5">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 text-center text-sm text-slate-400 md:flex-row md:text-left">
+        <div className="mx-auto grid max-w-7xl gap-6 text-center text-sm text-slate-400 md:grid-cols-[1fr_auto_1fr] md:items-center md:text-left">
           <p className="break-words">
             © {new Date().getFullYear()} {safeSettings.siteName}. All rights
             reserved.
           </p>
-          <p className="break-words">{safeSettings.footerText}</p>
+
+          <SocialLinksRow
+            settings={safeSettings}
+            compact
+            className="justify-center"
+          />
+
+          <p className="break-words md:text-right">{safeSettings.footerText}</p>
         </div>
       </footer>
     </main>
   );
-}
+}git 

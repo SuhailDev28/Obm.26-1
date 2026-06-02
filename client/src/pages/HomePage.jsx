@@ -212,243 +212,6 @@ const socialPlatforms = [
   },
 ];
 
-function normalizeHex(hex, fallback = "#0f172a") {
-  const value = String(hex || "").trim();
-
-  if (!value) return fallback;
-
-  const clean = value.replace("#", "");
-
-  if (/^[0-9a-f]{3}$/i.test(clean)) {
-    return `#${clean
-      .split("")
-      .map((char) => `${char}${char}`)
-      .join("")}`;
-  }
-
-  if (/^[0-9a-f]{6}$/i.test(clean)) {
-    return `#${clean}`;
-  }
-
-  return fallback;
-}
-
-function hexToRgb(hex) {
-  const clean = normalizeHex(hex).replace("#", "");
-
-  return {
-    r: parseInt(clean.slice(0, 2), 16),
-    g: parseInt(clean.slice(2, 4), 16),
-    b: parseInt(clean.slice(4, 6), 16),
-  };
-}
-
-function getRelativeLuminance(hex) {
-  const { r, g, b } = hexToRgb(hex);
-
-  const convert = (value) => {
-    const channel = value / 255;
-    return channel <= 0.03928
-      ? channel / 12.92
-      : Math.pow((channel + 0.055) / 1.055, 2.4);
-  };
-
-  const red = convert(r);
-  const green = convert(g);
-  const blue = convert(b);
-
-  return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
-}
-
-function getContrastTextColor(backgroundColor) {
-  return getRelativeLuminance(backgroundColor) > 0.48 ? "#020617" : "#ffffff";
-}
-
-function getThemeTokens(themeMode, settings) {
-  const isLightMode = themeMode === "light";
-  const primaryColor = normalizeHex(settings?.primaryColor, "#22d3ee");
-  const secondaryColor = normalizeHex(settings?.secondaryColor, "#2563eb");
-  const accentColor = normalizeHex(settings?.accentColor, "#a855f7");
-
-  if (isLightMode) {
-    return {
-      isLightMode: true,
-      pageClassName: "obm-light-page bg-slate-50 text-slate-950",
-      pageBackground: "#f8fafc",
-      surfaceBackground: "rgba(255,255,255,0.82)",
-      strongSurfaceBackground: "#ffffff",
-      elevatedSurfaceBackground: "rgba(248,250,252,0.92)",
-      textColor: "#0f172a",
-      headingColor: "#020617",
-      mutedColor: "#475569",
-      softMutedColor: "#64748b",
-      borderColor: "rgba(15,23,42,0.12)",
-      iconColor: "#0f172a",
-      iconMutedColor: "#334155",
-      dashboardBackground: "rgba(255,255,255,0.96)",
-      dashboardCardBackground: "rgba(248,250,252,0.92)",
-      inputBackground: "#ffffff",
-      inputTextColor: "#0f172a",
-      inputPlaceholderColor: "#94a3b8",
-      primaryButtonTextColor: getContrastTextColor(primaryColor),
-      secondaryButtonTextColor: "#0f172a",
-      socialIconColor: "#0f172a",
-      glowOpacity: "20",
-      primaryColor,
-      secondaryColor,
-      accentColor,
-    };
-  }
-
-  return {
-    isLightMode: false,
-    pageClassName: "obm-dark-page bg-slate-950 text-white",
-    pageBackground: "#020617",
-    surfaceBackground: "rgba(255,255,255,0.04)",
-    strongSurfaceBackground: "#020617",
-    elevatedSurfaceBackground: "rgba(15,23,42,0.78)",
-    textColor: "#ffffff",
-    headingColor: "#ffffff",
-    mutedColor: "#cbd5e1",
-    softMutedColor: "#94a3b8",
-    borderColor: "rgba(255,255,255,0.1)",
-    iconColor: primaryColor,
-    iconMutedColor: primaryColor,
-    dashboardBackground: "rgba(15,23,42,0.95)",
-    dashboardCardBackground: "rgba(30,41,59,0.8)",
-    inputBackground: "#020617",
-    inputTextColor: "#ffffff",
-    inputPlaceholderColor: "#64748b",
-    primaryButtonTextColor: getContrastTextColor(primaryColor),
-    secondaryButtonTextColor: "#ffffff",
-    socialIconColor: primaryColor,
-    glowOpacity: "33",
-    primaryColor,
-    secondaryColor,
-    accentColor,
-  };
-}
-
-function getSocialIconColor(platform, settings) {
-  if (settings.isLightMode) {
-    return settings.socialIconColor;
-  }
-
-  const whiteLikeIcons = new Set(["xTwitter", "tiktok", "threads", "websiteUrl"]);
-  return whiteLikeIcons.has(platform.key)
-    ? settings.textColor
-    : platform.brandColor || settings.iconColor;
-}
-
-function ThemeModeOverrides({ settings }) {
-  if (!settings.isLightMode) return null;
-
-  return (
-    <style>
-      {`
-        .obm-light-page {
-          background: #f8fafc;
-          color: #0f172a;
-        }
-
-        .obm-light-page .text-white,
-        .obm-light-page .text-slate-100 {
-          color: #0f172a;
-        }
-
-        .obm-light-page .text-slate-200,
-        .obm-light-page .text-slate-300 {
-          color: #334155;
-        }
-
-        .obm-light-page .text-slate-400,
-        .obm-light-page .text-slate-500 {
-          color: #64748b;
-        }
-
-        .obm-light-page .bg-slate-950,
-        .obm-light-page .bg-slate-900,
-        .obm-light-page .bg-slate-800 {
-          background-color: #ffffff;
-        }
-
-        .obm-light-page .bg-white\\/\\[0\\.03\\],
-        .obm-light-page .bg-white\\/\\[0\\.035\\],
-        .obm-light-page .bg-white\\/\\[0\\.04\\],
-        .obm-light-page .bg-white\\/\\[0\\.06\\],
-        .obm-light-page .bg-white\\/10 {
-          background-color: rgba(255, 255, 255, 0.78);
-        }
-
-        .obm-light-page .border-white\\/10,
-        .obm-light-page .border-white\\/15 {
-          border-color: rgba(15, 23, 42, 0.12);
-        }
-
-        .obm-light-page input,
-        .obm-light-page select,
-        .obm-light-page textarea {
-          background-color: #ffffff;
-          color: #0f172a;
-          border-color: rgba(15, 23, 42, 0.12);
-        }
-
-        .obm-light-page input::placeholder,
-        .obm-light-page textarea::placeholder {
-          color: #94a3b8;
-        }
-
-        .obm-light-page .obm-dashboard-inner {
-          background: rgba(255, 255, 255, 0.96);
-          border-color: rgba(15, 23, 42, 0.12);
-        }
-
-        .obm-light-page .obm-dashboard-card,
-        .obm-light-page .obm-stat-card,
-        .obm-light-page .obm-recommendation-box {
-          background: rgba(248, 250, 252, 0.92);
-          border-color: rgba(15, 23, 42, 0.12);
-        }
-
-        .obm-light-page .obm-dashboard-logo-box {
-          background: #ffffff;
-          border-color: rgba(15, 23, 42, 0.12);
-        }
-
-        .obm-light-page .obm-dashboard-muted-line {
-          background: rgba(15, 23, 42, 0.25);
-        }
-
-        .obm-light-page .obm-dashboard-muted-line-soft {
-          background: rgba(15, 23, 42, 0.12);
-        }
-
-        .obm-light-page .obm-social-link {
-          background: rgba(255, 255, 255, 0.82);
-          border-color: rgba(15, 23, 42, 0.12);
-          color: #0f172a;
-          box-shadow: 0 14px 35px rgba(15, 23, 42, 0.08);
-        }
-
-        .obm-light-page .obm-social-link:hover {
-          background: #ffffff;
-          color: #020617;
-          border-color: rgba(15, 23, 42, 0.2);
-        }
-
-        .obm-light-page .obm-social-icon-shell {
-          background: rgba(15, 23, 42, 0.08);
-        }
-
-        .obm-light-page .obm-light-icon {
-          color: ${settings.iconColor};
-        }
-      `}
-    </style>
-  );
-}
-
-
 function getApiOrigin() {
   const apiBase = String(import.meta.env.VITE_API_BASE || "")
     .replace(/\/api\/?$/, "")
@@ -510,6 +273,91 @@ function resolveSocialUrl(value, key = "") {
   return `https://${raw}`;
 }
 
+function normalizeHexColor(color) {
+  const raw = String(color || "").trim();
+
+  if (!raw.startsWith("#")) return "";
+
+  let hex = raw.slice(1);
+
+  if (hex.length === 3) {
+    hex = hex
+      .split("")
+      .map((char) => `${char}${char}`)
+      .join("");
+  }
+
+  if (!/^[0-9a-fA-F]{6}$/.test(hex)) return "";
+
+  return `#${hex.toUpperCase()}`;
+}
+
+function hexToRgb(color) {
+  const hex = normalizeHexColor(color);
+
+  if (!hex) return null;
+
+  const value = hex.slice(1);
+
+  return {
+    r: parseInt(value.slice(0, 2), 16),
+    g: parseInt(value.slice(2, 4), 16),
+    b: parseInt(value.slice(4, 6), 16),
+  };
+}
+
+function getRelativeLuminance(color) {
+  const rgb = hexToRgb(color);
+
+  if (!rgb) return 0;
+
+  const channel = (value) => {
+    const normalized = value / 255;
+    return normalized <= 0.03928
+      ? normalized / 12.92
+      : ((normalized + 0.055) / 1.055) ** 2.4;
+  };
+
+  return (
+    0.2126 * channel(rgb.r) +
+    0.7152 * channel(rgb.g) +
+    0.0722 * channel(rgb.b)
+  );
+}
+
+function getContrastRatio(colorA, colorB) {
+  const light = Math.max(getRelativeLuminance(colorA), getRelativeLuminance(colorB));
+  const dark = Math.min(getRelativeLuminance(colorA), getRelativeLuminance(colorB));
+
+  return (light + 0.05) / (dark + 0.05);
+}
+
+function getReadableAccentColor(primaryColor, secondaryColor, isLightMode) {
+  if (!isLightMode) return primaryColor;
+
+  const lightPageColor = "#F8FAFC";
+  const candidates = [
+    primaryColor,
+    secondaryColor,
+    "#2563EB",
+    "#0F172A",
+    "#111827",
+  ];
+
+  const readable = candidates
+    .map((color) => normalizeHexColor(color))
+    .filter(Boolean)
+    .find((color) => getContrastRatio(color, lightPageColor) >= 4.5);
+
+  return readable || "#0F172A";
+}
+
+function getSolidButtonTextColor(backgroundColor) {
+  return getContrastRatio(backgroundColor, "#020617") >= 4.5
+    ? "#020617"
+    : "#FFFFFF";
+}
+
 function getActiveSocialLinks(settings) {
   return socialPlatforms
     .map((platform) => ({
@@ -558,28 +406,26 @@ function SocialIconLink({
       title={platform.label}
       whileHover={{ y: -4, scale: 1.06 }}
       whileTap={{ scale: 0.96 }}
-      className={`obm-social-link group inline-flex items-center justify-center gap-2 rounded-full border transition ${
+      className={`group inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.04] text-slate-300 transition hover:bg-white/10 hover:text-white ${
         compact ? "h-10 w-10" : showLabel ? "px-4 py-3 text-sm" : "h-11 w-11"
       }`}
-      style={{
-        borderColor: settings.borderColor,
-        backgroundColor: settings.surfaceBackground,
-        color: settings.textColor,
-      }}
     >
       <span
-        className="obm-social-icon-shell flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition group-hover:scale-110"
+        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 transition group-hover:scale-110"
         style={{
-          backgroundColor: settings.isLightMode
-            ? "rgba(15,23,42,0.08)"
-            : "rgba(255,255,255,0.1)",
-          color: getSocialIconColor(platform, settings),
+          color: settings.isLightMode
+            ? settings.iconColor
+            : platform.brandColor || settings.iconColor || settings.primaryColor,
         }}
       >
         <Icon className="h-3.5 w-3.5" />
       </span>
 
-      {showLabel && <span className="font-bold">{platform.label}</span>}
+      {showLabel && (
+        <span className="font-bold">
+          {platform.label}
+        </span>
+      )}
     </motion.a>
   );
 }
@@ -693,22 +539,12 @@ function HeroDashboard({ settings }) {
 
       <motion.div
         animate={floatAnimation}
-        className="obm-dashboard-shell relative w-full overflow-hidden rounded-[1.5rem] border p-2.5 shadow-2xl backdrop-blur-xl sm:rounded-[2.2rem] sm:p-4"
-        style={{
-          borderColor: settings.borderColor,
-          backgroundColor: settings.surfaceBackground,
-          boxShadow: `0 30px 120px ${settings.primaryColor}14`,
-        }}
+        className="obm-dashboard-shell relative w-full overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/[0.06] p-2.5 shadow-2xl backdrop-blur-xl sm:rounded-[2.2rem] sm:p-4"
+        style={{ boxShadow: `0 30px 120px ${settings.primaryColor}14` }}
       >
         <div className="absolute inset-0 rounded-[1.5rem] bg-gradient-to-br from-white/10 via-transparent to-transparent sm:rounded-[2.2rem]" />
 
-        <div
-          className="obm-dashboard-inner relative overflow-hidden rounded-[1.1rem] border p-3 sm:rounded-[1.6rem] sm:p-5"
-          style={{
-            borderColor: settings.borderColor,
-            backgroundColor: settings.dashboardBackground,
-          }}
-        >
+        <div className="obm-dashboard-inner relative overflow-hidden rounded-[1.1rem] border border-white/10 bg-slate-900/95 p-3 sm:rounded-[1.6rem] sm:p-5">
           <div
             className="absolute -right-20 -top-20 h-48 w-48 rounded-full blur-3xl sm:h-64 sm:w-64"
             style={{ backgroundColor: `${settings.primaryColor}18` }}
@@ -716,13 +552,7 @@ function HeroDashboard({ settings }) {
 
           <div className="relative mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-              <div
-                className="obm-dashboard-logo-box flex min-h-14 min-w-24 shrink-0 items-center justify-center rounded-2xl border p-2 sm:min-h-16 sm:min-w-28 sm:p-3"
-                style={{
-                  borderColor: settings.borderColor,
-                  backgroundColor: settings.strongSurfaceBackground,
-                }}
-              >
+              <div className="obm-dashboard-logo-box flex min-h-14 min-w-24 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-slate-950 p-2 sm:min-h-16 sm:min-w-28 sm:p-3">
                 <SafeLogo settings={settings} size="lg" />
               </div>
 
@@ -764,7 +594,7 @@ function HeroDashboard({ settings }) {
                   <div className="mb-5 flex items-center justify-between gap-3">
                     <Icon
                       className="h-6 w-6 shrink-0 sm:h-7 sm:w-7"
-                      style={{ color: settings.iconColor }}
+                      style={{ color: settings.primaryColor }}
                     />
 
                     <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-bold text-white">
@@ -803,7 +633,7 @@ function HeroDashboard({ settings }) {
 
             <p
               className="flex flex-wrap items-center gap-2 text-sm font-bold"
-              style={{ color: settings.iconColor }}
+              style={{ color: settings.primaryColor }}
             >
               <WandSparkles className="h-4 w-4 shrink-0" />
               OBM Recommendation
@@ -931,7 +761,7 @@ function IndustryCard({ item, settings }) {
       >
         <CheckCircle2
           className="h-5 w-5"
-          style={{ color: settings.iconColor }}
+          style={{ color: settings.primaryColor }}
         />
       </div>
 
@@ -1035,7 +865,7 @@ function WowStrip({ settings }) {
           >
             <Icon
               className="h-4 w-4 shrink-0"
-              style={{ color: settings.iconColor }}
+              style={{ color: settings.primaryColor }}
             />
             {label}
           </div>
@@ -1051,8 +881,8 @@ export default function HomePage({
   themeMode = "dark",
   toggleTheme,
 }) {
-  const safeSettings = useMemo(() => {
-    const mergedSettings = {
+  const safeSettings = useMemo(
+    () => ({
       ...FALLBACK_SETTINGS,
       ...(settings || {}),
       primaryColor: settings?.primaryColor || FALLBACK_SETTINGS.primaryColor,
@@ -1083,17 +913,47 @@ export default function HomePage({
       googleBusiness:
         settings?.googleBusiness || FALLBACK_SETTINGS.googleBusiness,
       footerText: settings?.footerText || FALLBACK_SETTINGS.footerText,
-    };
+    }),
+    [settings],
+  );
 
-    return {
-      ...mergedSettings,
-      ...getThemeTokens(themeMode, mergedSettings),
-    };
-  }, [settings, themeMode]);
+  const isLightMode = themeMode === "light";
+
+  const contrastAccentColor = useMemo(
+    () =>
+      getReadableAccentColor(
+        safeSettings.primaryColor,
+        safeSettings.secondaryColor,
+        isLightMode,
+      ),
+    [safeSettings.primaryColor, safeSettings.secondaryColor, isLightMode],
+  );
+
+  const solidButtonTextColor = useMemo(
+    () => getSolidButtonTextColor(contrastAccentColor),
+    [contrastAccentColor],
+  );
+
+  const visualSettings = useMemo(
+    () => ({
+      ...safeSettings,
+      isLightMode,
+      brandPrimaryColor: safeSettings.primaryColor,
+      brandSecondaryColor: safeSettings.secondaryColor,
+      primaryColor: isLightMode ? contrastAccentColor : safeSettings.primaryColor,
+      secondaryColor: isLightMode
+        ? contrastAccentColor
+        : safeSettings.secondaryColor,
+      accentColor: isLightMode ? contrastAccentColor : safeSettings.accentColor,
+      iconColor: isLightMode ? contrastAccentColor : safeSettings.primaryColor,
+      solidButtonTextColor,
+    }),
+    [safeSettings, isLightMode, contrastAccentColor, solidButtonTextColor],
+  );
 
   const activeSocialLinks = useMemo(
-    () => getActiveSocialLinks(safeSettings),
-    [safeSettings],
+    () => getActiveSocialLinks(visualSettings),
+    [visualSettings],
   );
 
   const [contactForm, setContactForm] = useState(defaultContactForm);
@@ -1133,38 +993,126 @@ export default function HomePage({
 
   return (
     <main
-      className={`min-h-screen w-full overflow-x-clip ${safeSettings.pageClassName}`}
+      className={`obm-home-page ${
+        isLightMode ? "obm-home-light" : "obm-home-dark"
+      } min-h-screen w-full overflow-x-clip bg-slate-950 text-white`}
       style={{
-        backgroundColor: safeSettings.pageBackground,
-        color: safeSettings.textColor,
+        "--obm-contrast-icon": visualSettings.iconColor,
+        "--obm-solid-button-text": visualSettings.solidButtonTextColor,
       }}
     >
-      <ThemeModeOverrides settings={safeSettings} />
+      {isLightMode && (
+        <style>{`
+          .obm-home-light {
+            background: linear-gradient(180deg, #f8fafc 0%, #ffffff 42%, #f8fafc 100%) !important;
+            color: #0f172a !important;
+          }
+
+          .obm-home-light [class*="bg-slate-950"],
+          .obm-home-light [class*="bg-slate-900"],
+          .obm-home-light [class*="bg-slate-800"],
+          .obm-home-light [class*="bg-white/"],
+          .obm-home-light [class*="bg-white\\/"] {
+            background-color: rgba(255, 255, 255, 0.92) !important;
+          }
+
+          .obm-home-light [class*="from-slate-900"],
+          .obm-home-light [class*="to-slate-950"],
+          .obm-home-light [class*="bg-gradient-to-br"] {
+            background-image: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+          }
+
+          .obm-home-light [class*="border-white/"],
+          .obm-home-light [class*="border-white\\/"] {
+            border-color: rgba(15, 23, 42, 0.12) !important;
+          }
+
+          .obm-home-light .text-white,
+          .obm-home-light [class*="text-white"] {
+            color: #0f172a !important;
+          }
+
+          .obm-home-light [class*="text-slate-200"],
+          .obm-home-light [class*="text-slate-300"],
+          .obm-home-light [class*="text-slate-400"],
+          .obm-home-light [class*="text-slate-500"] {
+            color: #334155 !important;
+          }
+
+          .obm-home-light input,
+          .obm-home-light select,
+          .obm-home-light textarea {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+            border-color: rgba(15, 23, 42, 0.14) !important;
+          }
+
+          .obm-home-light input::placeholder,
+          .obm-home-light textarea::placeholder {
+            color: #64748b !important;
+          }
+
+          .obm-home-light .obm-dashboard-shell,
+          .obm-home-light .obm-dashboard-inner,
+          .obm-home-light .obm-dashboard-card,
+          .obm-home-light .obm-recommendation-box,
+          .obm-home-light .obm-stat-card {
+            background: rgba(255, 255, 255, 0.94) !important;
+            border-color: rgba(15, 23, 42, 0.12) !important;
+            color: #0f172a !important;
+          }
+
+          .obm-home-light .obm-dashboard-logo-box {
+            background: #ffffff !important;
+            border-color: rgba(15, 23, 42, 0.12) !important;
+          }
+
+          .obm-home-light .obm-dashboard-muted-line {
+            background-color: rgba(15, 23, 42, 0.18) !important;
+          }
+
+          .obm-home-light .obm-dashboard-muted-line-soft {
+            background-color: rgba(15, 23, 42, 0.1) !important;
+          }
+
+          .obm-home-light a[style*="background-color"],
+          .obm-home-light button[style*="background-color"] {
+            color: var(--obm-solid-button-text) !important;
+          }
+
+          .obm-home-light a[style*="background-color"] svg,
+          .obm-home-light button[style*="background-color"] svg {
+            color: var(--obm-solid-button-text) !important;
+            stroke: currentColor !important;
+          }
+        `}</style>
+      )}
+
       <PublicNav
-        settings={safeSettings}
+        settings={visualSettings}
         navigate={navigate}
         themeMode={themeMode}
         toggleTheme={toggleTheme}
       />
 
       <section className="relative overflow-hidden">
-        <AnimatedGrid settings={safeSettings} />
+        <AnimatedGrid settings={visualSettings} />
 
         <GlowOrb
           className="-left-20 top-10 h-56 w-56 sm:-left-24 sm:h-96 sm:w-96"
-          color={safeSettings.primaryColor}
+          color={visualSettings.primaryColor}
         />
 
         <GlowOrb
           className="-right-20 top-44 h-56 w-56 sm:-right-24 sm:h-96 sm:w-96"
-          color={safeSettings.secondaryColor}
+          color={visualSettings.secondaryColor}
           delay={1.2}
         />
 
         <div
           className="absolute inset-0"
           style={{
-            background: `radial-gradient(circle at top left, ${safeSettings.primaryColor}33, transparent 35%), radial-gradient(circle at top right, ${safeSettings.secondaryColor}2e, transparent 35%)`,
+            background: `radial-gradient(circle at top left, ${visualSettings.primaryColor}33, transparent 35%), radial-gradient(circle at top right, ${visualSettings.secondaryColor}2e, transparent 35%)`,
           }}
         />
 
@@ -1176,21 +1124,21 @@ export default function HomePage({
             className="max-w-3xl min-w-0 text-center sm:text-left"
           >
             <motion.div variants={fadeUp}>
-              <Badge settings={safeSettings}>{safeSettings.heroBadge}</Badge>
+              <Badge settings={visualSettings}>{visualSettings.heroBadge}</Badge>
             </motion.div>
 
             <motion.h1
               variants={fadeUp}
               className="mt-6 break-words text-[clamp(2.35rem,11vw,4.5rem)] font-black leading-[0.96] tracking-tight sm:mt-7 md:text-6xl xl:text-7xl"
             >
-              {safeSettings.heroTitle}
+              {visualSettings.heroTitle}
             </motion.h1>
 
             <motion.p
               variants={fadeUp}
               className="mx-auto mt-5 max-w-xl text-base leading-7 text-slate-300 sm:mx-0 sm:mt-6 sm:text-lg sm:leading-8"
             >
-              {safeSettings.heroText}
+              {visualSettings.heroText}
             </motion.p>
 
             <motion.div
@@ -1201,28 +1149,33 @@ export default function HomePage({
                 href="#contact"
                 whileHover={{ scale: 1.04, y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className="group inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-center font-bold shadow-lg transition sm:w-auto sm:px-7"
+                className="group inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-center font-bold text-slate-950 shadow-lg transition sm:w-auto sm:px-7"
                 style={{
-                  backgroundColor: safeSettings.primaryColor,
-                  color: safeSettings.primaryButtonTextColor,
-                  boxShadow: `0 18px 50px ${safeSettings.primaryColor}2e`,
+                  backgroundColor: visualSettings.primaryColor,
+                  boxShadow: `0 18px 50px ${visualSettings.primaryColor}2e`,
+                  color: visualSettings.solidButtonTextColor,
                 }}
               >
-                {safeSettings.ctaPrimary}
-                <ArrowRight className="h-5 w-5 shrink-0 transition group-hover:translate-x-1" />
+                {visualSettings.ctaPrimary}
+                <ArrowRight
+                  className="h-5 w-5 shrink-0 transition group-hover:translate-x-1"
+                  style={{ color: visualSettings.solidButtonTextColor }}
+                />
               </motion.a>
 
               <motion.a
                 href="#services"
                 whileHover={{ scale: 1.04, y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className="inline-flex w-full items-center justify-center rounded-full border px-6 py-4 text-center font-semibold transition hover:bg-white/10 sm:w-auto sm:px-7"
+                className="inline-flex w-full items-center justify-center rounded-full border border-white/15 px-6 py-4 text-center font-semibold text-white transition hover:bg-white/10 sm:w-auto sm:px-7"
                 style={{
-                  borderColor: safeSettings.borderColor,
-                  color: safeSettings.secondaryButtonTextColor,
+                  color: isLightMode ? "#0f172a" : "#ffffff",
+                  borderColor: isLightMode
+                    ? "rgba(15, 23, 42, 0.16)"
+                    : "rgba(255, 255, 255, 0.15)",
                 }}
               >
-                {safeSettings.ctaSecondary}
+                {visualSettings.ctaSecondary}
               </motion.a>
             </motion.div>
 
@@ -1236,7 +1189,7 @@ export default function HomePage({
                 </p>
 
                 <SocialLinksRow
-                  settings={safeSettings}
+                  settings={visualSettings}
                   compact
                   className="justify-center sm:justify-start"
                 />
@@ -1252,31 +1205,31 @@ export default function HomePage({
               <StatCard
                 value="360°"
                 label="Tech partner"
-                settings={safeSettings}
+                settings={visualSettings}
                 delay={0.4}
               />
               <StatCard
                 value="MVP"
                 label="Fast launch"
-                settings={safeSettings}
+                settings={visualSettings}
                 delay={0.5}
               />
               <StatCard
                 value="AI"
                 label="Automation ready"
-                settings={safeSettings}
+                settings={visualSettings}
                 delay={0.6}
               />
             </motion.div>
           </motion.div>
 
           <div className="min-w-0">
-            <HeroDashboard settings={safeSettings} />
+            <HeroDashboard settings={visualSettings} />
           </div>
         </div>
       </section>
 
-      <WowStrip settings={safeSettings} />
+      <WowStrip settings={visualSettings} />
 
       <section
         id="services"
@@ -1284,7 +1237,7 @@ export default function HomePage({
       >
         <GlowOrb
           className="left-1/2 top-20 h-56 w-56 -translate-x-1/2 sm:h-72 sm:w-72"
-          color={safeSettings.primaryColor}
+          color={visualSettings.primaryColor}
         />
 
         <div className="relative mx-auto max-w-7xl">
@@ -1295,7 +1248,7 @@ export default function HomePage({
             viewport={{ once: true, amount: 0.25 }}
           >
             <SectionTitle
-              settings={safeSettings}
+              settings={visualSettings}
               eyebrow="What We Do"
               title="Product engineering, digital transformation, and enterprise automation"
               text="We act as a complete technology partner for businesses looking to modernize operations and scale digitally."
@@ -1310,7 +1263,7 @@ export default function HomePage({
             className="mt-10 grid min-w-0 gap-5 lg:mt-14 lg:grid-cols-2 lg:gap-8"
           >
             <PillarCard
-              settings={safeSettings}
+              settings={visualSettings}
               eyebrow="Pillar 01"
               title="Product Engineering & Digital Transformation"
               icon={Rocket}
@@ -1320,13 +1273,13 @@ export default function HomePage({
                   key={service.title}
                   service={service}
                   index={index}
-                  settings={safeSettings}
+                  settings={visualSettings}
                 />
               ))}
             </PillarCard>
 
             <PillarCard
-              settings={safeSettings}
+              settings={visualSettings}
               eyebrow="Pillar 02"
               title="Enterprise Solutions & Automation"
               icon={Workflow}
@@ -1337,7 +1290,7 @@ export default function HomePage({
                   key={service.title}
                   service={service}
                   index={index}
-                  settings={safeSettings}
+                  settings={visualSettings}
                 />
               ))}
             </PillarCard>
@@ -1349,7 +1302,7 @@ export default function HomePage({
         id="process"
         className="relative overflow-hidden border-y border-white/10 bg-white/[0.03] px-4 py-16 sm:px-5 sm:py-20 lg:py-24"
       >
-        <AnimatedGrid settings={safeSettings} />
+        <AnimatedGrid settings={visualSettings} />
 
         <div className="relative mx-auto max-w-7xl">
           <motion.div
@@ -1359,7 +1312,7 @@ export default function HomePage({
             viewport={{ once: true, amount: 0.25 }}
           >
             <SectionTitle
-              settings={safeSettings}
+              settings={visualSettings}
               eyebrow="Our Process"
               title="From idea to deployed business system"
               text="A structured delivery model for startups, SMEs, and enterprises that need clarity, speed, and production quality."
@@ -1378,7 +1331,7 @@ export default function HomePage({
                 key={step}
                 step={step}
                 index={index}
-                settings={safeSettings}
+                settings={visualSettings}
               />
             ))}
           </motion.div>
@@ -1396,7 +1349,7 @@ export default function HomePage({
           >
             <p
               className="mb-3 text-sm font-semibold uppercase tracking-[0.22em] sm:tracking-[0.25em]"
-              style={{ color: safeSettings.iconColor }}
+              style={{ color: visualSettings.primaryColor }}
             >
               Industries
             </p>
@@ -1422,7 +1375,7 @@ export default function HomePage({
                 >
                   <Icon
                     className="h-6 w-6"
-                    style={{ color: safeSettings.iconColor }}
+                    style={{ color: visualSettings.primaryColor }}
                   />
                   <p className="mt-3 font-bold text-white">{label}</p>
                 </div>
@@ -1438,7 +1391,7 @@ export default function HomePage({
             className="grid min-w-0 gap-4 sm:grid-cols-2"
           >
             {industries.map((item) => (
-              <IndustryCard key={item} item={item} settings={safeSettings} />
+              <IndustryCard key={item} item={item} settings={visualSettings} />
             ))}
           </motion.div>
         </div>
@@ -1450,7 +1403,7 @@ export default function HomePage({
       >
         <GlowOrb
           className="right-0 top-10 h-56 w-56 sm:h-72 sm:w-72"
-          color={safeSettings.secondaryColor}
+          color={visualSettings.secondaryColor}
         />
 
         <div className="relative mx-auto max-w-7xl">
@@ -1461,7 +1414,7 @@ export default function HomePage({
             viewport={{ once: true, amount: 0.25 }}
           >
             <SectionTitle
-              settings={safeSettings}
+              settings={visualSettings}
               eyebrow="Packages"
               title="Flexible development and automation plans"
               text="Start with a focused audit or move directly into a complete product build."
@@ -1479,7 +1432,7 @@ export default function HomePage({
               <PricingCard
                 key={pkg.name}
                 pkg={pkg}
-                settings={safeSettings}
+                settings={visualSettings}
               />
             ))}
           </motion.div>
@@ -1493,7 +1446,7 @@ export default function HomePage({
         <div className="relative mx-auto grid max-w-7xl gap-8 overflow-hidden rounded-[1.5rem] border border-white/10 bg-gradient-to-br from-slate-900 to-slate-950 p-5 sm:rounded-[2rem] sm:p-6 md:grid-cols-2 md:p-10">
           <div
             className="absolute -left-24 -top-24 h-56 w-56 rounded-full blur-3xl sm:h-64 sm:w-64"
-            style={{ backgroundColor: `${safeSettings.primaryColor}18` }}
+            style={{ backgroundColor: `${visualSettings.primaryColor}18` }}
           />
 
           <motion.div
@@ -1505,7 +1458,7 @@ export default function HomePage({
           >
             <p
               className="mb-3 text-sm font-semibold uppercase tracking-[0.22em] sm:tracking-[0.25em]"
-              style={{ color: safeSettings.iconColor }}
+              style={{ color: visualSettings.primaryColor }}
             >
               Contact
             </p>
@@ -1522,38 +1475,38 @@ export default function HomePage({
 
             <div className="mt-8 space-y-4 text-slate-300">
               <a
-                href={`mailto:${safeSettings.email}`}
+                href={`mailto:${visualSettings.email}`}
                 className="flex min-w-0 items-start gap-3 transition hover:text-white"
               >
                 <Mail
                   className="mt-0.5 h-5 w-5 shrink-0"
-                  style={{ color: safeSettings.iconColor }}
+                  style={{ color: visualSettings.primaryColor }}
                 />
                 <span className="min-w-0 break-words">
-                  {safeSettings.email}
+                  {visualSettings.email}
                 </span>
               </a>
 
               <a
-                href={`tel:${String(safeSettings.phone || "").replace(/\s+/g, "")}`}
+                href={`tel:${String(visualSettings.phone || "").replace(/\s+/g, "")}`}
                 className="flex min-w-0 items-start gap-3 transition hover:text-white"
               >
                 <Phone
                   className="mt-0.5 h-5 w-5 shrink-0"
-                  style={{ color: safeSettings.iconColor }}
+                  style={{ color: visualSettings.primaryColor }}
                 />
                 <span className="min-w-0 break-words">
-                  {safeSettings.phone}
+                  {visualSettings.phone}
                 </span>
               </a>
 
               <p className="flex min-w-0 items-start gap-3">
                 <MapPin
                   className="mt-0.5 h-5 w-5 shrink-0"
-                  style={{ color: safeSettings.iconColor }}
+                  style={{ color: visualSettings.primaryColor }}
                 />
                 <span className="min-w-0 break-words">
-                  {safeSettings.location}
+                  {visualSettings.location}
                 </span>
               </p>
             </div>
@@ -1564,8 +1517,8 @@ export default function HomePage({
                   <div
                     className="flex h-10 w-10 items-center justify-center rounded-2xl"
                     style={{
-                      backgroundColor: `${safeSettings.primaryColor}18`,
-                      color: safeSettings.primaryColor,
+                      backgroundColor: `${visualSettings.primaryColor}18`,
+                      color: visualSettings.primaryColor,
                     }}
                   >
                     <Share2 className="h-5 w-5" />
@@ -1579,7 +1532,7 @@ export default function HomePage({
                   </div>
                 </div>
 
-                <SocialLinksRow settings={safeSettings} showLabel />
+                <SocialLinksRow settings={visualSettings} showLabel />
               </div>
             )}
           </motion.div>
@@ -1599,7 +1552,7 @@ export default function HomePage({
                   updateContactForm("name", event.target.value)
                 }
                 className="w-full min-w-0 rounded-2xl border border-white/10 bg-slate-950 px-4 py-4 outline-none placeholder:text-slate-500 focus:ring-2"
-                style={{ "--tw-ring-color": safeSettings.primaryColor }}
+                style={{ "--tw-ring-color": visualSettings.primaryColor }}
                 placeholder="Your Name"
                 required
               />
@@ -1611,7 +1564,7 @@ export default function HomePage({
                   updateContactForm("email", event.target.value)
                 }
                 className="w-full min-w-0 rounded-2xl border border-white/10 bg-slate-950 px-4 py-4 outline-none placeholder:text-slate-500 focus:ring-2"
-                style={{ "--tw-ring-color": safeSettings.primaryColor }}
+                style={{ "--tw-ring-color": visualSettings.primaryColor }}
                 placeholder="Email Address"
                 required
               />
@@ -1622,7 +1575,7 @@ export default function HomePage({
                   updateContactForm("companyName", event.target.value)
                 }
                 className="w-full min-w-0 rounded-2xl border border-white/10 bg-slate-950 px-4 py-4 outline-none placeholder:text-slate-500 focus:ring-2"
-                style={{ "--tw-ring-color": safeSettings.primaryColor }}
+                style={{ "--tw-ring-color": visualSettings.primaryColor }}
                 placeholder="Company Name"
               />
 
@@ -1632,7 +1585,7 @@ export default function HomePage({
                   updateContactForm("serviceType", event.target.value)
                 }
                 className="w-full min-w-0 rounded-2xl border border-white/10 bg-slate-950 px-4 py-4 outline-none focus:ring-2"
-                style={{ "--tw-ring-color": safeSettings.primaryColor }}
+                style={{ "--tw-ring-color": visualSettings.primaryColor }}
               >
                 <option>Product Engineering</option>
                 <option>Digital Transformation</option>
@@ -1648,7 +1601,7 @@ export default function HomePage({
                   updateContactForm("message", event.target.value)
                 }
                 className="min-h-32 w-full min-w-0 resize-y rounded-2xl border border-white/10 bg-slate-950 px-4 py-4 outline-none placeholder:text-slate-500 focus:ring-2"
-                style={{ "--tw-ring-color": safeSettings.primaryColor }}
+                style={{ "--tw-ring-color": visualSettings.primaryColor }}
                 placeholder="Tell us about your project"
                 required
               />
@@ -1673,14 +1626,17 @@ export default function HomePage({
                   y: contactSubmitting ? 0 : -2,
                 }}
                 whileTap={{ scale: contactSubmitting ? 1 : 0.98 }}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-center font-black transition disabled:cursor-not-allowed disabled:opacity-60 sm:px-7"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-center font-black text-slate-950 transition disabled:cursor-not-allowed disabled:opacity-60 sm:px-7"
                 style={{
-                  backgroundColor: safeSettings.primaryColor,
-                  color: safeSettings.primaryButtonTextColor,
+                  backgroundColor: visualSettings.primaryColor,
+                  color: visualSettings.solidButtonTextColor,
                 }}
               >
                 {contactSubmitting ? "Sending..." : "Send Inquiry"}
-                <Rocket className="h-5 w-5 shrink-0" />
+                <Rocket
+                  className="h-5 w-5 shrink-0"
+                  style={{ color: visualSettings.solidButtonTextColor }}
+                />
               </motion.button>
             </div>
           </motion.form>
@@ -1690,19 +1646,19 @@ export default function HomePage({
       <footer className="border-t border-white/10 px-4 py-8 sm:px-5">
         <div className="mx-auto grid max-w-7xl gap-6 text-center text-sm text-slate-400 md:grid-cols-[1fr_auto_1fr] md:items-center md:text-left">
           <p className="break-words">
-            © {new Date().getFullYear()} {safeSettings.siteName}. All rights
+            © {new Date().getFullYear()} {visualSettings.siteName}. All rights
             reserved.
           </p>
 
           <SocialLinksRow
-            settings={safeSettings}
+            settings={visualSettings}
             compact
             className="justify-center"
           />
 
-          <p className="break-words md:text-right">{safeSettings.footerText}</p>
+          <p className="break-words md:text-right">{visualSettings.footerText}</p>
         </div>
       </footer>
     </main>
   );
-} 
+} git 

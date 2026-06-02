@@ -23,7 +23,7 @@ const lightModeDefaultSettings = {
 };
 
 const effectiveDefaultSettings = {
-  ...effectiveDefaultSettings,
+  ...defaultSettings,
   ...lightModeDefaultSettings,
 };
 

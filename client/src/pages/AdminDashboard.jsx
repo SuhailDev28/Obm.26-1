@@ -265,7 +265,7 @@ export default function AdminDashboard({
                 <AdminLogoBox settings={draft} size="lg" />
 
                 <div className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold text-white/90 backdrop-blur">
-                  Live Theme
+                 
                 </div>
               </div>
 

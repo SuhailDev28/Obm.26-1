@@ -3,6 +3,9 @@ import mongoose from "mongoose";
 export const defaultSettings = {
   siteName: "OBM",
   tagline: "AI Consultancy & Software Development",
+
+  // Make sure this file exists inside backend /uploads folder.
+  // If your actual file name is "ogo-1780319743876.png", keep it as below.
   logo: "/uploads/ogo-1780319743876.png",
 
   primaryColor: "#22d3ee",
@@ -20,8 +23,20 @@ export const defaultSettings = {
   email: "hello@obm.qa",
   phone: "+974 0000 0000",
   location: "Doha, Qatar",
+  websiteUrl: "https://obm.qa",
+
   whatsapp: "+97400000000",
+  facebook: "",
+  instagram: "",
   linkedin: "https://www.linkedin.com/company/obm",
+  xTwitter: "",
+  youtube: "",
+  tiktok: "",
+  threads: "",
+  snapchat: "",
+  pinterest: "",
+  telegram: "",
+  googleBusiness: "",
 
   footerText: "AI Consultancy • Product Engineering • Enterprise Automation",
 
@@ -117,6 +132,7 @@ const siteSettingSchema = new mongoose.Schema(
       type: String,
       default: defaultSettings.email,
       trim: true,
+      lowercase: true,
     },
 
     phone: {
@@ -131,15 +147,81 @@ const siteSettingSchema = new mongoose.Schema(
       trim: true,
     },
 
+    websiteUrl: {
+      type: String,
+      default: defaultSettings.websiteUrl,
+      trim: true,
+    },
+
     whatsapp: {
       type: String,
       default: defaultSettings.whatsapp,
       trim: true,
     },
 
+    facebook: {
+      type: String,
+      default: defaultSettings.facebook,
+      trim: true,
+    },
+
+    instagram: {
+      type: String,
+      default: defaultSettings.instagram,
+      trim: true,
+    },
+
     linkedin: {
       type: String,
       default: defaultSettings.linkedin,
+      trim: true,
+    },
+
+    xTwitter: {
+      type: String,
+      default: defaultSettings.xTwitter,
+      trim: true,
+    },
+
+    youtube: {
+      type: String,
+      default: defaultSettings.youtube,
+      trim: true,
+    },
+
+    tiktok: {
+      type: String,
+      default: defaultSettings.tiktok,
+      trim: true,
+    },
+
+    threads: {
+      type: String,
+      default: defaultSettings.threads,
+      trim: true,
+    },
+
+    snapchat: {
+      type: String,
+      default: defaultSettings.snapchat,
+      trim: true,
+    },
+
+    pinterest: {
+      type: String,
+      default: defaultSettings.pinterest,
+      trim: true,
+    },
+
+    telegram: {
+      type: String,
+      default: defaultSettings.telegram,
+      trim: true,
+    },
+
+    googleBusiness: {
+      type: String,
+      default: defaultSettings.googleBusiness,
       trim: true,
     },
 

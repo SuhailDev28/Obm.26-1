@@ -1,20 +1,32 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
+  AtSign,
+  Camera,
   CheckCircle2,
   Cpu,
+  ExternalLink,
   Eye,
+  Globe2,
+  Hash,
   Home,
   ImagePlus,
+  Link2,
   LogOut,
   Mail,
+  MapPin,
+  MessageCircle,
+  Music2,
   Palette,
   Phone,
   RefreshCw,
   Save,
+  Send,
   Server,
   Settings,
+  Share2,
   ShieldCheck,
   Upload,
+  Video,
 } from "lucide-react";
 
 import LogoMark from "../components/LogoMark.jsx";
@@ -171,14 +183,89 @@ export default function AdminDashboard({
     [ImagePlus, "Logo Upload", "Header and footer logo", "#logo"],
     [Cpu, "Hero Content", "Landing page content", "#hero"],
     [Phone, "Contact Details", "Phone, email, location", "#contact-settings"],
-    [
-      Mail,
-      "Email Notifications",
-      "Contact form alerts",
-      "#contact-email-settings",
-    ],
+    [Share2, "Social Media", "Social links and integrations", "#social-settings"],
+    [Mail, "Email Notifications", "Contact form alerts", "#contact-email-settings"],
     [Server, "SMTP Settings", "Mail server setup", "#smtp-settings"],
   ];
+
+  const socialItems = [
+    {
+      key: "facebook",
+      label: "Facebook URL",
+      placeholder: "https://facebook.com/yourpage",
+      icon: Share2,
+    },
+    {
+      key: "instagram",
+      label: "Instagram URL",
+      placeholder: "https://instagram.com/yourprofile",
+      icon: Camera,
+    },
+    {
+      key: "linkedin",
+      label: "LinkedIn URL",
+      placeholder: "https://linkedin.com/company/yourcompany",
+      icon: Link2,
+    },
+    {
+      key: "xTwitter",
+      label: "X / Twitter URL",
+      placeholder: "https://x.com/yourprofile",
+      icon: Hash,
+    },
+    {
+      key: "youtube",
+      label: "YouTube URL",
+      placeholder: "https://youtube.com/@yourchannel",
+      icon: Video,
+    },
+    {
+      key: "tiktok",
+      label: "TikTok URL",
+      placeholder: "https://tiktok.com/@yourprofile",
+      icon: Music2,
+    },
+    {
+      key: "threads",
+      label: "Threads URL",
+      placeholder: "https://threads.net/@yourprofile",
+      icon: AtSign,
+    },
+    {
+      key: "snapchat",
+      label: "Snapchat URL",
+      placeholder: "https://snapchat.com/add/yourprofile",
+      icon: Camera,
+    },
+    {
+      key: "pinterest",
+      label: "Pinterest URL",
+      placeholder: "https://pinterest.com/yourprofile",
+      icon: Link2,
+    },
+    {
+      key: "telegram",
+      label: "Telegram URL",
+      placeholder: "https://t.me/yourchannel",
+      icon: Send,
+    },
+    {
+      key: "whatsapp",
+      label: "WhatsApp Number / Link",
+      placeholder: "+974XXXXXXXX or https://wa.me/974XXXXXXXX",
+      icon: MessageCircle,
+    },
+    {
+      key: "googleBusiness",
+      label: "Google Business Profile",
+      placeholder: "https://g.page/your-business",
+      icon: MapPin,
+    },
+  ];
+
+  const activeSocialLinks = socialItems.filter((item) =>
+    String(draft[item.key] || "").trim(),
+  );
 
   return (
     <main className="min-h-screen overflow-hidden bg-slate-950 text-white">
@@ -265,7 +352,7 @@ export default function AdminDashboard({
                 <AdminLogoBox settings={draft} size="lg" />
 
                 <div className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold text-white/90 backdrop-blur">
-                 
+                  Live Theme
                 </div>
               </div>
 
@@ -349,7 +436,8 @@ export default function AdminDashboard({
 
                 <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-400 sm:text-base">
                   Update branding, logo, hero copy, contact information, email
-                  notifications, and SMTP configuration without editing code.
+                  notifications, SMTP configuration and social media links
+                  without editing code.
                 </p>
               </div>
 
@@ -541,7 +629,7 @@ export default function AdminDashboard({
             id="contact-settings"
             icon={Phone}
             color={primaryColor}
-            title="Contact & Social Details"
+            title="Contact Details"
             text="Update business contact information displayed on the website."
           >
             <div className="grid gap-5 md:grid-cols-2">
@@ -564,17 +652,72 @@ export default function AdminDashboard({
               />
 
               <Field
-                label="WhatsApp"
-                value={draft.whatsapp || ""}
-                onChange={(value) => update("whatsapp", value)}
+                label="Website URL"
+                value={draft.websiteUrl || ""}
+                onChange={(value) => update("websiteUrl", value)}
+                placeholder="https://obm.qa"
               />
+            </div>
+          </DashboardCard>
 
-              <div className="md:col-span-2">
-                <Field
-                  label="LinkedIn URL"
-                  value={draft.linkedin || ""}
-                  onChange={(value) => update("linkedin", value)}
+          <DashboardCard
+            id="social-settings"
+            icon={Share2}
+            color={primaryColor}
+            title="Social Media Integration"
+            text="Add all social media links used on the website header, footer and contact sections."
+          >
+            <div className="grid gap-5 md:grid-cols-2">
+              {socialItems.map(({ key, label, placeholder, icon: Icon }) => (
+                <SocialField
+                  key={key}
+                  icon={Icon}
+                  color={primaryColor}
+                  label={label}
+                  value={draft[key] || ""}
+                  placeholder={placeholder}
+                  onChange={(value) => update(key, value)}
                 />
+              ))}
+            </div>
+
+            <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-slate-950/70 p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="font-black text-white">Active Social Links</p>
+                  <p className="mt-1 text-sm text-slate-400">
+                    These links will be available for frontend social icons.
+                  </p>
+                </div>
+
+                <span
+                  className="w-fit rounded-full px-3 py-1 text-xs font-black text-slate-950"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  {activeSocialLinks.length} Active
+                </span>
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                {activeSocialLinks.length > 0 ? (
+                  activeSocialLinks.map(({ key, label, icon: Icon }) => (
+                    <a
+                      key={key}
+                      href={resolveSocialUrl(draft[key], key)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-bold text-slate-200 transition hover:bg-white/10"
+                    >
+                      <Icon className="h-3.5 w-3.5" />
+                      {label.replace(" URL", "")}
+                      <ExternalLink className="h-3 w-3 opacity-60" />
+                    </a>
+                  ))
+                ) : (
+                  <p className="text-sm text-slate-500">
+                    No social links added yet.
+                  </p>
+                )}
               </div>
             </div>
           </DashboardCard>
@@ -685,7 +828,7 @@ export default function AdminDashboard({
                 <h2 className="text-2xl font-black">Ready to publish?</h2>
                 <p className="mt-2 text-sm leading-6 text-slate-400">
                   Save all changes and open the public website to verify your
-                  updated branding and content.
+                  updated branding, content and social media links.
                 </p>
               </div>
 
@@ -772,6 +915,36 @@ function DashboardCard({ id, icon: Icon, color, title, text, children }) {
   );
 }
 
+function SocialField({
+  icon: Icon,
+  color,
+  label,
+  value,
+  onChange,
+  placeholder,
+}) {
+  return (
+    <div className="rounded-[1.5rem] border border-white/10 bg-slate-950/70 p-4">
+      <label className="mb-2 flex items-center gap-2 text-sm font-black text-slate-200">
+        <span
+          className="flex h-8 w-8 items-center justify-center rounded-xl"
+          style={{ backgroundColor: `${color}20`, color }}
+        >
+          <Icon className="h-4 w-4" />
+        </span>
+        {label}
+      </label>
+
+      <input
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-white/20 focus:bg-white/[0.07]"
+      />
+    </div>
+  );
+}
+
 function TogglePanel({ title, text, checked, onChange, color }) {
   return (
     <label className="flex cursor-pointer flex-col gap-4 rounded-[1.5rem] border border-white/10 bg-slate-950/70 p-5 transition hover:bg-white/[0.04] sm:flex-row sm:items-center sm:justify-between">
@@ -833,4 +1006,27 @@ function AlertBox({ type, icon: Icon, text }) {
       <span>{text}</span>
     </div>
   );
+}
+
+function resolveSocialUrl(value, key = "") {
+  const raw = String(value || "").trim();
+
+  if (!raw) return "#";
+
+  if (key === "whatsapp") {
+    const cleaned = raw.replace(/\s+/g, "");
+
+    if (cleaned.startsWith("http://") || cleaned.startsWith("https://")) {
+      return cleaned;
+    }
+
+    const phone = cleaned.replace(/[^\d+]/g, "").replace(/^\+/, "");
+    return `https://wa.me/${phone}`;
+  }
+
+  if (raw.startsWith("http://") || raw.startsWith("https://")) {
+    return raw;
+  }
+
+  return `https://${raw}`;
 }

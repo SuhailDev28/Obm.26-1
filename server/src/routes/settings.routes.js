@@ -6,24 +6,33 @@ import SiteSetting, { defaultSettings } from "../models/SiteSetting.js";
 import { requireAdmin } from "../middleware/auth.js";
 
 const router = express.Router();
+
 const uploadDir = path.join(process.cwd(), "src", "uploads");
 fs.mkdirSync(uploadDir, { recursive: true });
 
+const BOOLEAN_FIELDS = new Set(["contactEmailEnabled", "smtpEnabled"]);
+
+const PROTECTED_FIELDS = new Set(["key", "_id", "__v", "createdAt", "updatedAt", "updatedBy"]);
+
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadDir),
+
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname || ".png").toLowerCase();
-    cb(null, `logo-${Date.now()}${ext}`);
+    cb(null, `logo-${Date.now()}${ext || ".png"}`);
   },
 });
 
 const upload = multer({
   storage,
-  limits: { fileSize: 3 * 1024 * 1024 },
+  limits: {
+    fileSize: 3 * 1024 * 1024,
+  },
   fileFilter: (_req, file, cb) => {
-    if (!file.mimetype.startsWith("image/")) {
+    if (!file.mimetype?.startsWith("image/")) {
       return cb(new Error("Only image uploads are allowed"));
     }
+
     cb(null, true);
   },
 });
@@ -31,9 +40,35 @@ const upload = multer({
 async function getSettingsDocument() {
   return SiteSetting.findOneAndUpdate(
     { key: "main" },
-    { $setOnInsert: { ...defaultSettings, key: "main" } },
-    { new: true, upsert: true },
+    {
+      $setOnInsert: {
+        ...defaultSettings,
+        key: "main",
+      },
+    },
+    {
+      new: true,
+      upsert: true,
+    },
   ).lean();
+}
+
+function mergeSettings(settings = {}) {
+  return {
+    ...defaultSettings,
+    ...settings,
+    smtpPass: settings.smtpPass || "",
+  };
+}
+
+function normalizeBoolean(value) {
+  if (typeof value === "boolean") return value;
+
+  if (typeof value === "number") return value === 1;
+
+  const text = String(value || "").trim().toLowerCase();
+
+  return ["true", "1", "yes", "on"].includes(text);
 }
 
 function sanitizeSettings(input = {}) {
@@ -41,18 +76,39 @@ function sanitizeSettings(input = {}) {
   const output = {};
 
   for (const key of allowed) {
+    if (PROTECTED_FIELDS.has(key)) continue;
+
     if (Object.prototype.hasOwnProperty.call(input, key)) {
-      output[key] = String(input[key] ?? "").trim();
+      if (BOOLEAN_FIELDS.has(key)) {
+        output[key] = normalizeBoolean(input[key]);
+      } else {
+        output[key] = String(input[key] ?? "").trim();
+      }
     }
   }
 
   return output;
 }
 
+function deleteOldLogoFile(logoPath = "") {
+  const value = String(logoPath || "").trim();
+
+  if (!value.startsWith("/uploads/logo-")) return;
+
+  const filename = path.basename(value);
+  const filePath = path.join(uploadDir, filename);
+
+  fs.promises.unlink(filePath).catch(() => {});
+}
+
 router.get("/settings", async (_req, res, next) => {
   try {
     const settings = await getSettingsDocument();
-    res.json({ success: true, settings: { ...defaultSettings, ...settings } });
+
+    res.json({
+      success: true,
+      settings: mergeSettings(settings),
+    });
   } catch (error) {
     next(error);
   }
@@ -61,46 +117,139 @@ router.get("/settings", async (_req, res, next) => {
 router.put("/admin/settings", requireAdmin, async (req, res, next) => {
   try {
     const payload = sanitizeSettings(req.body);
+
     const settings = await SiteSetting.findOneAndUpdate(
       { key: "main" },
-      { $set: { ...payload, updatedBy: req.admin._id }, $setOnInsert: { key: "main" } },
-      { new: true, upsert: true },
+      {
+        $set: {
+          ...payload,
+          updatedBy: req.admin?._id || null,
+        },
+        $setOnInsert: {
+          key: "main",
+        },
+      },
+      {
+        new: true,
+        upsert: true,
+      },
     ).lean();
 
-    res.json({ success: true, settings: { ...defaultSettings, ...settings } });
+    res.json({
+      success: true,
+      settings: mergeSettings(settings),
+    });
   } catch (error) {
     next(error);
   }
 });
 
-router.post("/admin/upload-logo", requireAdmin, upload.single("logo"), async (req, res, next) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: "Logo image is required" });
+router.post(
+  "/admin/upload-logo",
+  requireAdmin,
+  (req, res, next) => {
+    upload.single("logo")(req, res, (error) => {
+      if (error instanceof multer.MulterError) {
+        if (error.code === "LIMIT_FILE_SIZE") {
+          return res.status(400).json({
+            success: false,
+            message: "Logo image must be less than 3MB",
+          });
+        }
+
+        return res.status(400).json({
+          success: false,
+          message: error.message || "Logo upload failed",
+        });
+      }
+
+      if (error) {
+        return res.status(400).json({
+          success: false,
+          message: error.message || "Logo upload failed",
+        });
+      }
+
+      next();
+    });
+  },
+  async (req, res, next) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: "Logo image is required",
+        });
+      }
+
+      const existingSettings = await getSettingsDocument();
+
+      const logo = `/uploads/${req.file.filename}`;
+
+      const settings = await SiteSetting.findOneAndUpdate(
+        { key: "main" },
+        {
+          $set: {
+            logo,
+            updatedBy: req.admin?._id || null,
+          },
+          $setOnInsert: {
+            key: "main",
+          },
+        },
+        {
+          new: true,
+          upsert: true,
+        },
+      ).lean();
+
+      if (existingSettings?.logo && existingSettings.logo !== logo) {
+        deleteOldLogoFile(existingSettings.logo);
+      }
+
+      res.json({
+        success: true,
+        logo,
+        settings: mergeSettings(settings),
+      });
+    } catch (error) {
+      next(error);
     }
-
-    const logo = `/uploads/${req.file.filename}`;
-    const settings = await SiteSetting.findOneAndUpdate(
-      { key: "main" },
-      { $set: { logo, updatedBy: req.admin._id }, $setOnInsert: { key: "main" } },
-      { new: true, upsert: true },
-    ).lean();
-
-    res.json({ success: true, logo, settings: { ...defaultSettings, ...settings } });
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 router.post("/admin/reset-settings", requireAdmin, async (req, res, next) => {
   try {
+    const existingSettings = await getSettingsDocument();
+
     const settings = await SiteSetting.findOneAndUpdate(
       { key: "main" },
-      { $set: { ...defaultSettings, updatedBy: req.admin._id }, $setOnInsert: { key: "main" } },
-      { new: true, upsert: true },
+      {
+        $set: {
+          ...defaultSettings,
+          updatedBy: req.admin?._id || null,
+        },
+        $setOnInsert: {
+          key: "main",
+        },
+      },
+      {
+        new: true,
+        upsert: true,
+      },
     ).lean();
 
-    res.json({ success: true, settings: { ...defaultSettings, ...settings } });
+    if (
+      existingSettings?.logo &&
+      existingSettings.logo !== defaultSettings.logo
+    ) {
+      deleteOldLogoFile(existingSettings.logo);
+    }
+
+    res.json({
+      success: true,
+      settings: mergeSettings(settings),
+    });
   } catch (error) {
     next(error);
   }

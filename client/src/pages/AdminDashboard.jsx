@@ -1,33 +1,38 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  AtSign,
-  Camera,
   CheckCircle2,
   Cpu,
   ExternalLink,
   Eye,
   Globe2,
-  Hash,
   Home,
   ImagePlus,
-  Link2,
   LogOut,
   Mail,
   MapPin,
-  MessageCircle,
-  Music2,
   Palette,
   Phone,
   RefreshCw,
   Save,
-  Send,
   Server,
   Settings,
   Share2,
   ShieldCheck,
   Upload,
-  Video,
 } from "lucide-react";
+import {
+  FaFacebookF,
+  FaGoogle,
+  FaInstagram,
+  FaLinkedinIn,
+  FaPinterestP,
+  FaSnapchatGhost,
+  FaTelegramPlane,
+  FaTiktok,
+  FaWhatsapp,
+  FaYoutube,
+} from "react-icons/fa";
+import { FaThreads, FaXTwitter } from "react-icons/fa6";
 
 import LogoMark from "../components/LogoMark.jsx";
 import { ColorField, Field, TextAreaField } from "../components/FormFields.jsx";
@@ -193,73 +198,85 @@ export default function AdminDashboard({
       key: "facebook",
       label: "Facebook URL",
       placeholder: "https://facebook.com/yourpage",
-      icon: Share2,
+      icon: FaFacebookF,
+      brandColor: "#1877F2",
     },
     {
       key: "instagram",
       label: "Instagram URL",
       placeholder: "https://instagram.com/yourprofile",
-      icon: Camera,
+      icon: FaInstagram,
+      brandColor: "#E4405F",
     },
     {
       key: "linkedin",
       label: "LinkedIn URL",
       placeholder: "https://linkedin.com/company/yourcompany",
-      icon: Link2,
+      icon: FaLinkedinIn,
+      brandColor: "#0A66C2",
     },
     {
       key: "xTwitter",
       label: "X / Twitter URL",
       placeholder: "https://x.com/yourprofile",
-      icon: Hash,
+      icon: FaXTwitter,
+      brandColor: "#FFFFFF",
     },
     {
       key: "youtube",
       label: "YouTube URL",
       placeholder: "https://youtube.com/@yourchannel",
-      icon: Video,
+      icon: FaYoutube,
+      brandColor: "#FF0000",
     },
     {
       key: "tiktok",
       label: "TikTok URL",
       placeholder: "https://tiktok.com/@yourprofile",
-      icon: Music2,
+      icon: FaTiktok,
+      brandColor: "#FFFFFF",
     },
     {
       key: "threads",
       label: "Threads URL",
       placeholder: "https://threads.net/@yourprofile",
-      icon: AtSign,
+      icon: FaThreads,
+      brandColor: "#FFFFFF",
     },
     {
       key: "snapchat",
       label: "Snapchat URL",
       placeholder: "https://snapchat.com/add/yourprofile",
-      icon: Camera,
+      icon: FaSnapchatGhost,
+      brandColor: "#FFFC00",
     },
     {
       key: "pinterest",
       label: "Pinterest URL",
       placeholder: "https://pinterest.com/yourprofile",
-      icon: Link2,
+      icon: FaPinterestP,
+      brandColor: "#E60023",
     },
     {
       key: "telegram",
       label: "Telegram URL",
       placeholder: "https://t.me/yourchannel",
-      icon: Send,
+      icon: FaTelegramPlane,
+      brandColor: "#26A5E4",
     },
     {
       key: "whatsapp",
       label: "WhatsApp Number / Link",
       placeholder: "+974XXXXXXXX or https://wa.me/974XXXXXXXX",
-      icon: MessageCircle,
+      icon: FaWhatsapp,
+      brandColor: "#25D366",
     },
     {
       key: "googleBusiness",
       label: "Google Business Profile",
       placeholder: "https://g.page/your-business",
-      icon: MapPin,
+      icon: FaGoogle,
+      brandColor: "#4285F4",
     },
   ];
 
@@ -352,7 +369,7 @@ export default function AdminDashboard({
                 <AdminLogoBox settings={draft} size="lg" />
 
                 <div className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold text-white/90 backdrop-blur">
-                  Live Theme
+                  
                 </div>
               </div>
 
@@ -668,17 +685,20 @@ export default function AdminDashboard({
             text="Add all social media links used on the website header, footer and contact sections."
           >
             <div className="grid gap-5 md:grid-cols-2">
-              {socialItems.map(({ key, label, placeholder, icon: Icon }) => (
-                <SocialField
-                  key={key}
-                  icon={Icon}
-                  color={primaryColor}
-                  label={label}
-                  value={draft[key] || ""}
-                  placeholder={placeholder}
-                  onChange={(value) => update(key, value)}
-                />
-              ))}
+              {socialItems.map(
+                ({ key, label, placeholder, icon: Icon, brandColor }) => (
+                  <SocialField
+                    key={key}
+                    icon={Icon}
+                    color={primaryColor}
+                    brandColor={brandColor}
+                    label={label}
+                    value={draft[key] || ""}
+                    placeholder={placeholder}
+                    onChange={(value) => update(key, value)}
+                  />
+                ),
+              )}
             </div>
 
             <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-slate-950/70 p-5">
@@ -700,15 +720,20 @@ export default function AdminDashboard({
 
               <div className="mt-4 flex flex-wrap gap-2">
                 {activeSocialLinks.length > 0 ? (
-                  activeSocialLinks.map(({ key, label, icon: Icon }) => (
+                  activeSocialLinks.map(({ key, label, icon: Icon, brandColor }) => (
                     <a
                       key={key}
                       href={resolveSocialUrl(draft[key], key)}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-bold text-slate-200 transition hover:bg-white/10"
+                      className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-bold text-slate-200 transition hover:-translate-y-0.5 hover:bg-white/10"
                     >
-                      <Icon className="h-3.5 w-3.5" />
+                      <span
+                        className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10"
+                        style={{ color: brandColor }}
+                      >
+                        <Icon className="h-3.5 w-3.5" />
+                      </span>
                       {label.replace(" URL", "")}
                       <ExternalLink className="h-3 w-3 opacity-60" />
                     </a>
@@ -918,6 +943,7 @@ function DashboardCard({ id, icon: Icon, color, title, text, children }) {
 function SocialField({
   icon: Icon,
   color,
+  brandColor,
   label,
   value,
   onChange,
@@ -927,8 +953,8 @@ function SocialField({
     <div className="rounded-[1.5rem] border border-white/10 bg-slate-950/70 p-4">
       <label className="mb-2 flex items-center gap-2 text-sm font-black text-slate-200">
         <span
-          className="flex h-8 w-8 items-center justify-center rounded-xl"
-          style={{ backgroundColor: `${color}20`, color }}
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.06]"
+          style={{ color: brandColor || color }}
         >
           <Icon className="h-4 w-4" />
         </span>

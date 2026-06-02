@@ -2,33 +2,38 @@ import React, { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
-  AtSign,
   BarChart3,
   Bot,
-  Camera,
   CheckCircle2,
   Cpu,
   Database,
   ExternalLink,
   Globe2,
-  Hash,
   Layers3,
-  Link2,
   Mail,
   MapPin,
-  MessageCircle,
   MousePointer2,
-  Music2,
   Phone,
   Rocket,
-  Send,
   Share2,
   ShieldCheck,
-  Video,
   WandSparkles,
   Workflow,
   Zap,
 } from "lucide-react";
+import {
+  FaFacebookF,
+  FaGoogle,
+  FaInstagram,
+  FaLinkedinIn,
+  FaPinterestP,
+  FaSnapchatGhost,
+  FaTelegramPlane,
+  FaTiktok,
+  FaWhatsapp,
+  FaYoutube,
+} from "react-icons/fa";
+import { FaThreads, FaXTwitter } from "react-icons/fa6";
 
 import PublicNav from "../components/PublicNav.jsx";
 import LogoMark from "../components/LogoMark.jsx";
@@ -130,67 +135,80 @@ const socialPlatforms = [
   {
     key: "facebook",
     label: "Facebook",
-    icon: Share2,
+    icon: FaFacebookF,
+    brandColor: "#1877F2",
   },
   {
     key: "instagram",
     label: "Instagram",
-    icon: Camera,
+    icon: FaInstagram,
+    brandColor: "#E4405F",
   },
   {
     key: "linkedin",
     label: "LinkedIn",
-    icon: Link2,
+    icon: FaLinkedinIn,
+    brandColor: "#0A66C2",
   },
   {
     key: "xTwitter",
     label: "X",
-    icon: Hash,
+    icon: FaXTwitter,
+    brandColor: "#FFFFFF",
   },
   {
     key: "youtube",
     label: "YouTube",
-    icon: Video,
+    icon: FaYoutube,
+    brandColor: "#FF0000",
   },
   {
     key: "tiktok",
     label: "TikTok",
-    icon: Music2,
+    icon: FaTiktok,
+    brandColor: "#FFFFFF",
   },
   {
     key: "threads",
     label: "Threads",
-    icon: AtSign,
+    icon: FaThreads,
+    brandColor: "#FFFFFF",
   },
   {
     key: "snapchat",
     label: "Snapchat",
-    icon: Camera,
+    icon: FaSnapchatGhost,
+    brandColor: "#FFFC00",
   },
   {
     key: "pinterest",
     label: "Pinterest",
-    icon: Link2,
+    icon: FaPinterestP,
+    brandColor: "#E60023",
   },
   {
     key: "telegram",
     label: "Telegram",
-    icon: Send,
+    icon: FaTelegramPlane,
+    brandColor: "#26A5E4",
   },
   {
     key: "whatsapp",
     label: "WhatsApp",
-    icon: MessageCircle,
+    icon: FaWhatsapp,
+    brandColor: "#25D366",
   },
   {
     key: "googleBusiness",
     label: "Google Business",
-    icon: MapPin,
+    icon: FaGoogle,
+    brandColor: "#4285F4",
   },
   {
     key: "websiteUrl",
     label: "Website",
     icon: Globe2,
+    brandColor: "#FFFFFF",
   },
 ];
 
@@ -307,10 +325,12 @@ function SocialIconLink({
         compact ? "h-10 w-10" : showLabel ? "px-4 py-3 text-sm" : "h-11 w-11"
       }`}
     >
-      <Icon
-        className="h-4 w-4 shrink-0 transition group-hover:scale-110"
-        style={{ color: settings.primaryColor }}
-      />
+      <span
+        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 transition group-hover:scale-110"
+        style={{ color: platform.brandColor || settings.primaryColor }}
+      >
+        <Icon className="h-3.5 w-3.5" />
+      </span>
 
       {showLabel && (
         <span className="font-bold">
@@ -1407,4 +1427,4 @@ export default function HomePage({
       </footer>
     </main>
   );
-}
+} 

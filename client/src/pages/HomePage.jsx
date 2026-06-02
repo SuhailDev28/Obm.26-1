@@ -212,6 +212,243 @@ const socialPlatforms = [
   },
 ];
 
+function normalizeHex(hex, fallback = "#0f172a") {
+  const value = String(hex || "").trim();
+
+  if (!value) return fallback;
+
+  const clean = value.replace("#", "");
+
+  if (/^[0-9a-f]{3}$/i.test(clean)) {
+    return `#${clean
+      .split("")
+      .map((char) => `${char}${char}`)
+      .join("")}`;
+  }
+
+  if (/^[0-9a-f]{6}$/i.test(clean)) {
+    return `#${clean}`;
+  }
+
+  return fallback;
+}
+
+function hexToRgb(hex) {
+  const clean = normalizeHex(hex).replace("#", "");
+
+  return {
+    r: parseInt(clean.slice(0, 2), 16),
+    g: parseInt(clean.slice(2, 4), 16),
+    b: parseInt(clean.slice(4, 6), 16),
+  };
+}
+
+function getRelativeLuminance(hex) {
+  const { r, g, b } = hexToRgb(hex);
+
+  const convert = (value) => {
+    const channel = value / 255;
+    return channel <= 0.03928
+      ? channel / 12.92
+      : Math.pow((channel + 0.055) / 1.055, 2.4);
+  };
+
+  const red = convert(r);
+  const green = convert(g);
+  const blue = convert(b);
+
+  return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+}
+
+function getContrastTextColor(backgroundColor) {
+  return getRelativeLuminance(backgroundColor) > 0.48 ? "#020617" : "#ffffff";
+}
+
+function getThemeTokens(themeMode, settings) {
+  const isLightMode = themeMode === "light";
+  const primaryColor = normalizeHex(settings?.primaryColor, "#22d3ee");
+  const secondaryColor = normalizeHex(settings?.secondaryColor, "#2563eb");
+  const accentColor = normalizeHex(settings?.accentColor, "#a855f7");
+
+  if (isLightMode) {
+    return {
+      isLightMode: true,
+      pageClassName: "obm-light-page bg-slate-50 text-slate-950",
+      pageBackground: "#f8fafc",
+      surfaceBackground: "rgba(255,255,255,0.82)",
+      strongSurfaceBackground: "#ffffff",
+      elevatedSurfaceBackground: "rgba(248,250,252,0.92)",
+      textColor: "#0f172a",
+      headingColor: "#020617",
+      mutedColor: "#475569",
+      softMutedColor: "#64748b",
+      borderColor: "rgba(15,23,42,0.12)",
+      iconColor: "#0f172a",
+      iconMutedColor: "#334155",
+      dashboardBackground: "rgba(255,255,255,0.96)",
+      dashboardCardBackground: "rgba(248,250,252,0.92)",
+      inputBackground: "#ffffff",
+      inputTextColor: "#0f172a",
+      inputPlaceholderColor: "#94a3b8",
+      primaryButtonTextColor: getContrastTextColor(primaryColor),
+      secondaryButtonTextColor: "#0f172a",
+      socialIconColor: "#0f172a",
+      glowOpacity: "20",
+      primaryColor,
+      secondaryColor,
+      accentColor,
+    };
+  }
+
+  return {
+    isLightMode: false,
+    pageClassName: "obm-dark-page bg-slate-950 text-white",
+    pageBackground: "#020617",
+    surfaceBackground: "rgba(255,255,255,0.04)",
+    strongSurfaceBackground: "#020617",
+    elevatedSurfaceBackground: "rgba(15,23,42,0.78)",
+    textColor: "#ffffff",
+    headingColor: "#ffffff",
+    mutedColor: "#cbd5e1",
+    softMutedColor: "#94a3b8",
+    borderColor: "rgba(255,255,255,0.1)",
+    iconColor: primaryColor,
+    iconMutedColor: primaryColor,
+    dashboardBackground: "rgba(15,23,42,0.95)",
+    dashboardCardBackground: "rgba(30,41,59,0.8)",
+    inputBackground: "#020617",
+    inputTextColor: "#ffffff",
+    inputPlaceholderColor: "#64748b",
+    primaryButtonTextColor: getContrastTextColor(primaryColor),
+    secondaryButtonTextColor: "#ffffff",
+    socialIconColor: primaryColor,
+    glowOpacity: "33",
+    primaryColor,
+    secondaryColor,
+    accentColor,
+  };
+}
+
+function getSocialIconColor(platform, settings) {
+  if (settings.isLightMode) {
+    return settings.socialIconColor;
+  }
+
+  const whiteLikeIcons = new Set(["xTwitter", "tiktok", "threads", "websiteUrl"]);
+  return whiteLikeIcons.has(platform.key)
+    ? settings.textColor
+    : platform.brandColor || settings.iconColor;
+}
+
+function ThemeModeOverrides({ settings }) {
+  if (!settings.isLightMode) return null;
+
+  return (
+    <style>
+      {`
+        .obm-light-page {
+          background: #f8fafc;
+          color: #0f172a;
+        }
+
+        .obm-light-page .text-white,
+        .obm-light-page .text-slate-100 {
+          color: #0f172a;
+        }
+
+        .obm-light-page .text-slate-200,
+        .obm-light-page .text-slate-300 {
+          color: #334155;
+        }
+
+        .obm-light-page .text-slate-400,
+        .obm-light-page .text-slate-500 {
+          color: #64748b;
+        }
+
+        .obm-light-page .bg-slate-950,
+        .obm-light-page .bg-slate-900,
+        .obm-light-page .bg-slate-800 {
+          background-color: #ffffff;
+        }
+
+        .obm-light-page .bg-white\\/\\[0\\.03\\],
+        .obm-light-page .bg-white\\/\\[0\\.035\\],
+        .obm-light-page .bg-white\\/\\[0\\.04\\],
+        .obm-light-page .bg-white\\/\\[0\\.06\\],
+        .obm-light-page .bg-white\\/10 {
+          background-color: rgba(255, 255, 255, 0.78);
+        }
+
+        .obm-light-page .border-white\\/10,
+        .obm-light-page .border-white\\/15 {
+          border-color: rgba(15, 23, 42, 0.12);
+        }
+
+        .obm-light-page input,
+        .obm-light-page select,
+        .obm-light-page textarea {
+          background-color: #ffffff;
+          color: #0f172a;
+          border-color: rgba(15, 23, 42, 0.12);
+        }
+
+        .obm-light-page input::placeholder,
+        .obm-light-page textarea::placeholder {
+          color: #94a3b8;
+        }
+
+        .obm-light-page .obm-dashboard-inner {
+          background: rgba(255, 255, 255, 0.96);
+          border-color: rgba(15, 23, 42, 0.12);
+        }
+
+        .obm-light-page .obm-dashboard-card,
+        .obm-light-page .obm-stat-card,
+        .obm-light-page .obm-recommendation-box {
+          background: rgba(248, 250, 252, 0.92);
+          border-color: rgba(15, 23, 42, 0.12);
+        }
+
+        .obm-light-page .obm-dashboard-logo-box {
+          background: #ffffff;
+          border-color: rgba(15, 23, 42, 0.12);
+        }
+
+        .obm-light-page .obm-dashboard-muted-line {
+          background: rgba(15, 23, 42, 0.25);
+        }
+
+        .obm-light-page .obm-dashboard-muted-line-soft {
+          background: rgba(15, 23, 42, 0.12);
+        }
+
+        .obm-light-page .obm-social-link {
+          background: rgba(255, 255, 255, 0.82);
+          border-color: rgba(15, 23, 42, 0.12);
+          color: #0f172a;
+          box-shadow: 0 14px 35px rgba(15, 23, 42, 0.08);
+        }
+
+        .obm-light-page .obm-social-link:hover {
+          background: #ffffff;
+          color: #020617;
+          border-color: rgba(15, 23, 42, 0.2);
+        }
+
+        .obm-light-page .obm-social-icon-shell {
+          background: rgba(15, 23, 42, 0.08);
+        }
+
+        .obm-light-page .obm-light-icon {
+          color: ${settings.iconColor};
+        }
+      `}
+    </style>
+  );
+}
+
+
 function getApiOrigin() {
   const apiBase = String(import.meta.env.VITE_API_BASE || "")
     .replace(/\/api\/?$/, "")
@@ -321,22 +558,28 @@ function SocialIconLink({
       title={platform.label}
       whileHover={{ y: -4, scale: 1.06 }}
       whileTap={{ scale: 0.96 }}
-      className={`group inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.04] text-slate-300 transition hover:bg-white/10 hover:text-white ${
+      className={`obm-social-link group inline-flex items-center justify-center gap-2 rounded-full border transition ${
         compact ? "h-10 w-10" : showLabel ? "px-4 py-3 text-sm" : "h-11 w-11"
       }`}
+      style={{
+        borderColor: settings.borderColor,
+        backgroundColor: settings.surfaceBackground,
+        color: settings.textColor,
+      }}
     >
       <span
-        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 transition group-hover:scale-110"
-        style={{ color: platform.brandColor || settings.primaryColor }}
+        className="obm-social-icon-shell flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition group-hover:scale-110"
+        style={{
+          backgroundColor: settings.isLightMode
+            ? "rgba(15,23,42,0.08)"
+            : "rgba(255,255,255,0.1)",
+          color: getSocialIconColor(platform, settings),
+        }}
       >
         <Icon className="h-3.5 w-3.5" />
       </span>
 
-      {showLabel && (
-        <span className="font-bold">
-          {platform.label}
-        </span>
-      )}
+      {showLabel && <span className="font-bold">{platform.label}</span>}
     </motion.a>
   );
 }
@@ -450,12 +693,22 @@ function HeroDashboard({ settings }) {
 
       <motion.div
         animate={floatAnimation}
-        className="obm-dashboard-shell relative w-full overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/[0.06] p-2.5 shadow-2xl backdrop-blur-xl sm:rounded-[2.2rem] sm:p-4"
-        style={{ boxShadow: `0 30px 120px ${settings.primaryColor}14` }}
+        className="obm-dashboard-shell relative w-full overflow-hidden rounded-[1.5rem] border p-2.5 shadow-2xl backdrop-blur-xl sm:rounded-[2.2rem] sm:p-4"
+        style={{
+          borderColor: settings.borderColor,
+          backgroundColor: settings.surfaceBackground,
+          boxShadow: `0 30px 120px ${settings.primaryColor}14`,
+        }}
       >
         <div className="absolute inset-0 rounded-[1.5rem] bg-gradient-to-br from-white/10 via-transparent to-transparent sm:rounded-[2.2rem]" />
 
-        <div className="obm-dashboard-inner relative overflow-hidden rounded-[1.1rem] border border-white/10 bg-slate-900/95 p-3 sm:rounded-[1.6rem] sm:p-5">
+        <div
+          className="obm-dashboard-inner relative overflow-hidden rounded-[1.1rem] border p-3 sm:rounded-[1.6rem] sm:p-5"
+          style={{
+            borderColor: settings.borderColor,
+            backgroundColor: settings.dashboardBackground,
+          }}
+        >
           <div
             className="absolute -right-20 -top-20 h-48 w-48 rounded-full blur-3xl sm:h-64 sm:w-64"
             style={{ backgroundColor: `${settings.primaryColor}18` }}
@@ -463,7 +716,13 @@ function HeroDashboard({ settings }) {
 
           <div className="relative mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-              <div className="obm-dashboard-logo-box flex min-h-14 min-w-24 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-slate-950 p-2 sm:min-h-16 sm:min-w-28 sm:p-3">
+              <div
+                className="obm-dashboard-logo-box flex min-h-14 min-w-24 shrink-0 items-center justify-center rounded-2xl border p-2 sm:min-h-16 sm:min-w-28 sm:p-3"
+                style={{
+                  borderColor: settings.borderColor,
+                  backgroundColor: settings.strongSurfaceBackground,
+                }}
+              >
                 <SafeLogo settings={settings} size="lg" />
               </div>
 
@@ -505,7 +764,7 @@ function HeroDashboard({ settings }) {
                   <div className="mb-5 flex items-center justify-between gap-3">
                     <Icon
                       className="h-6 w-6 shrink-0 sm:h-7 sm:w-7"
-                      style={{ color: settings.primaryColor }}
+                      style={{ color: settings.iconColor }}
                     />
 
                     <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-bold text-white">
@@ -544,7 +803,7 @@ function HeroDashboard({ settings }) {
 
             <p
               className="flex flex-wrap items-center gap-2 text-sm font-bold"
-              style={{ color: settings.primaryColor }}
+              style={{ color: settings.iconColor }}
             >
               <WandSparkles className="h-4 w-4 shrink-0" />
               OBM Recommendation
@@ -672,7 +931,7 @@ function IndustryCard({ item, settings }) {
       >
         <CheckCircle2
           className="h-5 w-5"
-          style={{ color: settings.primaryColor }}
+          style={{ color: settings.iconColor }}
         />
       </div>
 
@@ -776,7 +1035,7 @@ function WowStrip({ settings }) {
           >
             <Icon
               className="h-4 w-4 shrink-0"
-              style={{ color: settings.primaryColor }}
+              style={{ color: settings.iconColor }}
             />
             {label}
           </div>
@@ -792,8 +1051,8 @@ export default function HomePage({
   themeMode = "dark",
   toggleTheme,
 }) {
-  const safeSettings = useMemo(
-    () => ({
+  const safeSettings = useMemo(() => {
+    const mergedSettings = {
       ...FALLBACK_SETTINGS,
       ...(settings || {}),
       primaryColor: settings?.primaryColor || FALLBACK_SETTINGS.primaryColor,
@@ -824,9 +1083,13 @@ export default function HomePage({
       googleBusiness:
         settings?.googleBusiness || FALLBACK_SETTINGS.googleBusiness,
       footerText: settings?.footerText || FALLBACK_SETTINGS.footerText,
-    }),
-    [settings],
-  );
+    };
+
+    return {
+      ...mergedSettings,
+      ...getThemeTokens(themeMode, mergedSettings),
+    };
+  }, [settings, themeMode]);
 
   const activeSocialLinks = useMemo(
     () => getActiveSocialLinks(safeSettings),
@@ -869,7 +1132,14 @@ export default function HomePage({
   };
 
   return (
-    <main className="min-h-screen w-full overflow-x-clip bg-slate-950 text-white">
+    <main
+      className={`min-h-screen w-full overflow-x-clip ${safeSettings.pageClassName}`}
+      style={{
+        backgroundColor: safeSettings.pageBackground,
+        color: safeSettings.textColor,
+      }}
+    >
+      <ThemeModeOverrides settings={safeSettings} />
       <PublicNav
         settings={safeSettings}
         navigate={navigate}
@@ -931,9 +1201,10 @@ export default function HomePage({
                 href="#contact"
                 whileHover={{ scale: 1.04, y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className="group inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-center font-bold text-slate-950 shadow-lg transition sm:w-auto sm:px-7"
+                className="group inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-center font-bold shadow-lg transition sm:w-auto sm:px-7"
                 style={{
                   backgroundColor: safeSettings.primaryColor,
+                  color: safeSettings.primaryButtonTextColor,
                   boxShadow: `0 18px 50px ${safeSettings.primaryColor}2e`,
                 }}
               >
@@ -945,7 +1216,11 @@ export default function HomePage({
                 href="#services"
                 whileHover={{ scale: 1.04, y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className="inline-flex w-full items-center justify-center rounded-full border border-white/15 px-6 py-4 text-center font-semibold text-white transition hover:bg-white/10 sm:w-auto sm:px-7"
+                className="inline-flex w-full items-center justify-center rounded-full border px-6 py-4 text-center font-semibold transition hover:bg-white/10 sm:w-auto sm:px-7"
+                style={{
+                  borderColor: safeSettings.borderColor,
+                  color: safeSettings.secondaryButtonTextColor,
+                }}
               >
                 {safeSettings.ctaSecondary}
               </motion.a>
@@ -1121,7 +1396,7 @@ export default function HomePage({
           >
             <p
               className="mb-3 text-sm font-semibold uppercase tracking-[0.22em] sm:tracking-[0.25em]"
-              style={{ color: safeSettings.primaryColor }}
+              style={{ color: safeSettings.iconColor }}
             >
               Industries
             </p>
@@ -1147,7 +1422,7 @@ export default function HomePage({
                 >
                   <Icon
                     className="h-6 w-6"
-                    style={{ color: safeSettings.primaryColor }}
+                    style={{ color: safeSettings.iconColor }}
                   />
                   <p className="mt-3 font-bold text-white">{label}</p>
                 </div>
@@ -1230,7 +1505,7 @@ export default function HomePage({
           >
             <p
               className="mb-3 text-sm font-semibold uppercase tracking-[0.22em] sm:tracking-[0.25em]"
-              style={{ color: safeSettings.primaryColor }}
+              style={{ color: safeSettings.iconColor }}
             >
               Contact
             </p>
@@ -1252,7 +1527,7 @@ export default function HomePage({
               >
                 <Mail
                   className="mt-0.5 h-5 w-5 shrink-0"
-                  style={{ color: safeSettings.primaryColor }}
+                  style={{ color: safeSettings.iconColor }}
                 />
                 <span className="min-w-0 break-words">
                   {safeSettings.email}
@@ -1265,7 +1540,7 @@ export default function HomePage({
               >
                 <Phone
                   className="mt-0.5 h-5 w-5 shrink-0"
-                  style={{ color: safeSettings.primaryColor }}
+                  style={{ color: safeSettings.iconColor }}
                 />
                 <span className="min-w-0 break-words">
                   {safeSettings.phone}
@@ -1275,7 +1550,7 @@ export default function HomePage({
               <p className="flex min-w-0 items-start gap-3">
                 <MapPin
                   className="mt-0.5 h-5 w-5 shrink-0"
-                  style={{ color: safeSettings.primaryColor }}
+                  style={{ color: safeSettings.iconColor }}
                 />
                 <span className="min-w-0 break-words">
                   {safeSettings.location}
@@ -1398,8 +1673,11 @@ export default function HomePage({
                   y: contactSubmitting ? 0 : -2,
                 }}
                 whileTap={{ scale: contactSubmitting ? 1 : 0.98 }}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-center font-black text-slate-950 transition disabled:cursor-not-allowed disabled:opacity-60 sm:px-7"
-                style={{ backgroundColor: safeSettings.primaryColor }}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-center font-black transition disabled:cursor-not-allowed disabled:opacity-60 sm:px-7"
+                style={{
+                  backgroundColor: safeSettings.primaryColor,
+                  color: safeSettings.primaryButtonTextColor,
+                }}
               >
                 {contactSubmitting ? "Sending..." : "Send Inquiry"}
                 <Rocket className="h-5 w-5 shrink-0" />

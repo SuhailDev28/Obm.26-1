@@ -25,6 +25,39 @@ import {
   uploadLogoToApi,
 } from "../lib/api.js";
 
+const FALLBACK_API_ORIGIN = "http://localhost:5001";
+
+function getApiOrigin() {
+  const apiBase = String(import.meta.env.VITE_API_BASE || "")
+    .replace(/\/api\/?$/, "")
+    .replace(/\/$/, "");
+
+  return apiBase || FALLBACK_API_ORIGIN;
+}
+
+function resolveAssetUrl(path) {
+  const value = String(path || "").trim();
+
+  if (!value) return "";
+
+  if (
+    value.startsWith("http://") ||
+    value.startsWith("https://") ||
+    value.startsWith("data:") ||
+    value.startsWith("blob:")
+  ) {
+    return value;
+  }
+
+  const apiOrigin = getApiOrigin();
+
+  if (value.startsWith("/")) {
+    return `${apiOrigin}${value}`;
+  }
+
+  return `${apiOrigin}/${value}`;
+}
+
 export default function AdminDashboard({
   settings,
   setSettings,
@@ -138,7 +171,12 @@ export default function AdminDashboard({
     [ImagePlus, "Logo Upload", "Header and footer logo", "#logo"],
     [Cpu, "Hero Content", "Landing page content", "#hero"],
     [Phone, "Contact Details", "Phone, email, location", "#contact-settings"],
-    [Mail, "Email Notifications", "Contact form alerts", "#contact-email-settings"],
+    [
+      Mail,
+      "Email Notifications",
+      "Contact form alerts",
+      "#contact-email-settings",
+    ],
     [Server, "SMTP Settings", "Mail server setup", "#smtp-settings"],
   ];
 
@@ -670,6 +708,14 @@ export default function AdminDashboard({
 }
 
 function AdminLogoBox({ settings, size = "header" }) {
+  const [imageFailed, setImageFailed] = useState(false);
+
+  const logoUrl = resolveAssetUrl(settings?.logo);
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [logoUrl]);
+
   const boxClass =
     size === "lg"
       ? "h-20 w-48 rounded-3xl p-3"
@@ -682,11 +728,12 @@ function AdminLogoBox({ settings, size = "header" }) {
       className={`flex shrink-0 items-center justify-center overflow-hidden bg-white shadow-2xl ${boxClass}`}
     >
       <div className="flex h-full w-full items-center justify-center">
-        {settings?.logo ? (
+        {logoUrl && !imageFailed ? (
           <img
-            src={settings.logo}
-            alt={settings.siteName || "OBM Logo"}
-            className="h-full w-full object-contain"
+            src={logoUrl}
+            alt={settings?.siteName || "OBM Logo"}
+            className="block h-full w-full object-contain"
+            onError={() => setImageFailed(true)}
           />
         ) : (
           <LogoMark settings={settings} />

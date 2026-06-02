@@ -1,8 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
+  CheckCircle2,
   Cpu,
+  Eye,
   Home,
   ImagePlus,
+  LogOut,
   Mail,
   Palette,
   Phone,
@@ -10,6 +13,7 @@ import {
   Save,
   Server,
   Settings,
+  ShieldCheck,
   Upload,
 } from "lucide-react";
 
@@ -21,14 +25,19 @@ import {
   uploadLogoToApi,
 } from "../lib/api.js";
 
-export default function AdminDashboard({ settings, setSettings, navigate, onLogout }) {
-  const [draft, setDraft] = useState(settings);
+export default function AdminDashboard({
+  settings,
+  setSettings,
+  navigate,
+  onLogout,
+}) {
+  const [draft, setDraft] = useState(settings || {});
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setDraft(settings);
+    setDraft(settings || {});
   }, [settings]);
 
   const update = (key, value) => {
@@ -41,7 +50,7 @@ export default function AdminDashboard({ settings, setSettings, navigate, onLogo
 
   const showSaved = () => {
     setSaved(true);
-    setTimeout(() => setSaved(false), 2200);
+    window.setTimeout(() => setSaved(false), 2200);
   };
 
   const handleLogoUpload = async (event) => {
@@ -58,9 +67,10 @@ export default function AdminDashboard({ settings, setSettings, navigate, onLogo
       setSettings(nextSettings);
       showSaved();
     } catch (err) {
-      setError(err.message || "Logo upload failed");
+      setError(err?.message || "Logo upload failed");
     } finally {
       setSaving(false);
+      event.target.value = "";
     }
   };
 
@@ -75,7 +85,7 @@ export default function AdminDashboard({ settings, setSettings, navigate, onLogo
       setDraft(nextSettings);
       showSaved();
     } catch (err) {
-      setError(err.message || "Settings save failed");
+      setError(err?.message || "Settings save failed");
     } finally {
       setSaving(false);
     }
@@ -92,134 +102,251 @@ export default function AdminDashboard({ settings, setSettings, navigate, onLogo
       setSettings(nextSettings);
       showSaved();
     } catch (err) {
-      setError(err.message || "Reset failed");
+      setError(err?.message || "Reset failed");
     } finally {
       setSaving(false);
     }
   };
 
-  const previewStyle = useMemo(
+  const primaryColor = draft.primaryColor || "#22d3ee";
+  const secondaryColor = draft.secondaryColor || "#2563eb";
+  const accentColor = draft.accentColor || "#a855f7";
+
+  const heroPreviewStyle = useMemo(
     () => ({
-      background: `linear-gradient(135deg, ${draft.primaryColor}, ${draft.secondaryColor})`,
-      boxShadow: `0 18px 50px ${draft.primaryColor}30`,
+      background: `
+        radial-gradient(circle at top left, ${primaryColor}45, transparent 32%),
+        radial-gradient(circle at bottom right, ${secondaryColor}45, transparent 35%),
+        linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.98))
+      `,
+      boxShadow: `0 28px 90px ${primaryColor}22`,
     }),
-    [draft.primaryColor, draft.secondaryColor],
+    [primaryColor, secondaryColor],
+  );
+
+  const gradientButtonStyle = useMemo(
+    () => ({
+      background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
+      boxShadow: `0 16px 42px ${primaryColor}35`,
+    }),
+    [primaryColor, secondaryColor],
   );
 
   const menuItems = [
-    [Settings, "Brand Settings", "#brand"],
-    [Palette, "Color Control", "#colors"],
-    [ImagePlus, "Logo Upload", "#logo"],
-    [Cpu, "Hero Content", "#hero"],
-    [Phone, "Contact Details", "#contact-settings"],
-    [Mail, "Email Notifications", "#contact-email-settings"],
-    [Server, "SMTP Settings", "#smtp-settings"],
+    [Settings, "Brand Settings", "Company name, tagline", "#brand"],
+    [Palette, "Color Control", "Primary, secondary, accent", "#colors"],
+    [ImagePlus, "Logo Upload", "Header and footer logo", "#logo"],
+    [Cpu, "Hero Content", "Landing page content", "#hero"],
+    [Phone, "Contact Details", "Phone, email, location", "#contact-settings"],
+    [Mail, "Email Notifications", "Contact form alerts", "#contact-email-settings"],
+    [Server, "SMTP Settings", "Mail server setup", "#smtp-settings"],
   ];
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/90 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4">
+    <main className="min-h-screen overflow-hidden bg-slate-950 text-white">
+      <div className="pointer-events-none fixed inset-0 opacity-70">
+        <div
+          className="absolute -left-32 top-10 h-80 w-80 rounded-full blur-3xl"
+          style={{ backgroundColor: `${primaryColor}25` }}
+        />
+        <div
+          className="absolute -right-32 top-80 h-96 w-96 rounded-full blur-3xl"
+          style={{ backgroundColor: `${secondaryColor}22` }}
+        />
+        <div
+          className="absolute bottom-0 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full blur-3xl"
+          style={{ backgroundColor: `${accentColor}18` }}
+        />
+      </div>
+
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/80 backdrop-blur-2xl">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-center gap-3">
-            <LogoMark settings={draft} variant="navbar" />
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white p-2 shadow-2xl">
+              <LogoMark settings={draft} variant="navbar" />
+            </div>
+
             <div className="min-w-0">
-              <p className="truncate text-lg font-bold leading-none">
-                OBM Admin Dashboard
-              </p>
-              <p className="mt-1 truncate text-xs text-slate-400">
-                Logo, colors, website content, contact and SMTP controls
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="truncate text-lg font-black leading-none sm:text-xl">
+                  OBM Admin Dashboard
+                </p>
+                <span
+                  className="rounded-full px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-slate-950"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  Control
+                </span>
+              </div>
+
+              <p className="mt-1 truncate text-xs text-slate-400 sm:text-sm">
+                Manage logo, colors, website content, contact and SMTP settings.
               </p>
             </div>
           </div>
 
-          <div className="flex shrink-0 items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <button
               onClick={() => navigate("/")}
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
+              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-white/10"
             >
               <Home className="h-4 w-4" />
-              View Website
+              Website
             </button>
 
             <button
               onClick={onLogout}
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
+              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-white/10"
             >
+              <LogOut className="h-4 w-4" />
               Logout
             </button>
 
             <button
               onClick={handleSave}
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-black text-slate-950 disabled:cursor-not-allowed disabled:opacity-60"
-              style={{ backgroundColor: draft.primaryColor }}
+              className="inline-flex items-center gap-2 rounded-2xl px-5 py-2.5 text-sm font-black text-slate-950 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+              style={gradientButtonStyle}
             >
               <Save className="h-4 w-4" />
-              {saving ? "Saving..." : "Save"}
+              {saving ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </div>
       </header>
 
-      <section className="mx-auto grid max-w-7xl gap-6 px-5 py-8 lg:grid-cols-[280px_1fr]">
-        <aside className="h-fit rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 lg:sticky lg:top-24">
-          <div className="mb-5 rounded-3xl p-5" style={previewStyle}>
-            <div className="rounded-2xl bg-white p-3">
-              <LogoMark settings={draft} size="lg" />
+      <section className="relative z-10 mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[320px_1fr] lg:py-8">
+        <aside className="h-fit rounded-[2rem] border border-white/10 bg-white/[0.055] p-4 shadow-2xl shadow-black/20 backdrop-blur-2xl lg:sticky lg:top-24">
+          <div className="overflow-hidden rounded-[1.75rem] border border-white/10">
+            <div className="p-5" style={heroPreviewStyle}>
+              <div className="flex items-center justify-between gap-3">
+                <div className="rounded-3xl bg-white p-3">
+                  <LogoMark settings={draft} size="lg" />
+                </div>
+
+                <div className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold text-white/90 backdrop-blur">
+                  Live Theme
+                </div>
+              </div>
+
+              <p className="mt-5 line-clamp-2 text-2xl font-black text-white">
+                {draft.siteName || "OBM"}
+              </p>
+
+              <p className="mt-2 line-clamp-2 text-sm leading-6 text-white/75">
+                {draft.tagline || "AI consultancy and digital solutions"}
+              </p>
             </div>
 
-            <p className="mt-4 text-2xl font-black text-white">
-              {draft.siteName}
-            </p>
-            <p className="mt-1 text-sm text-white/80">{draft.tagline}</p>
+            <div className="grid grid-cols-3 border-t border-white/10 bg-slate-950/80">
+              <ColorDot label="Primary" value={primaryColor} />
+              <ColorDot label="Secondary" value={secondaryColor} />
+              <ColorDot label="Accent" value={accentColor} />
+            </div>
           </div>
 
-          <nav className="space-y-2 text-sm">
-            {menuItems.map(([Icon, label, href]) => (
+          <nav className="mt-5 space-y-2">
+            {menuItems.map(([Icon, label, description, href]) => (
               <a
                 key={label}
                 href={href}
-                className="flex items-center gap-3 rounded-2xl px-4 py-3 text-slate-300 transition hover:bg-white/10 hover:text-white"
+                className="group flex items-center gap-3 rounded-3xl border border-transparent px-4 py-3 text-slate-300 transition hover:border-white/10 hover:bg-white/[0.06] hover:text-white"
               >
-                <Icon className="h-4 w-4" />
-                {label}
+                <span
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] transition group-hover:scale-105"
+                  style={{ color: primaryColor }}
+                >
+                  <Icon className="h-4 w-4" />
+                </span>
+
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-black">
+                    {label}
+                  </span>
+                  <span className="block truncate text-xs text-slate-500">
+                    {description}
+                  </span>
+                </span>
               </a>
             ))}
           </nav>
 
           <button
             onClick={handleReset}
-            className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm font-bold text-red-200 transition hover:bg-red-400/20"
+            disabled={saving}
+            className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-3xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm font-black text-red-200 transition hover:bg-red-400/20 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <RefreshCw className="h-4 w-4" />
             Reset Defaults
           </button>
 
           {saved && (
-            <p className="mt-4 rounded-2xl bg-emerald-400/10 px-4 py-3 text-sm font-semibold text-emerald-300">
-              Settings saved successfully.
-            </p>
+            <AlertBox
+              type="success"
+              icon={CheckCircle2}
+              text="Settings saved successfully."
+            />
           )}
 
-          {error && (
-            <p className="mt-4 rounded-2xl bg-red-400/10 px-4 py-3 text-sm font-semibold text-red-200">
-              {error}
-            </p>
-          )}
+          {error && <AlertBox type="error" icon={ShieldCheck} text={error} />}
         </aside>
 
         <div className="space-y-6">
-          <section
-            id="brand"
-            className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 md:p-8"
-          >
-            <SectionHeader
-              icon={Settings}
-              color={draft.primaryColor}
-              title="Brand Settings"
-              text="Control company name, tagline and footer text."
-            />
+          <section className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.055] shadow-2xl shadow-black/20 backdrop-blur-2xl">
+            <div className="grid gap-6 p-6 md:grid-cols-[1fr_300px] md:p-8">
+              <div>
+                <p
+                  className="mb-3 inline-flex rounded-full px-3 py-1 text-xs font-black uppercase tracking-[0.2em] text-slate-950"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  Website Control Center
+                </p>
 
+                <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
+                  Manage your complete OBM landing page from one place.
+                </h1>
+
+                <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-400 sm:text-base">
+                  Update branding, logo, hero copy, contact information, email
+                  notifications, and SMTP configuration without editing code.
+                </p>
+              </div>
+
+              <div className="rounded-[1.75rem] border border-white/10 bg-slate-950/70 p-5">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="flex h-12 w-12 items-center justify-center rounded-2xl"
+                    style={{ backgroundColor: `${primaryColor}22` }}
+                  >
+                    <Eye className="h-5 w-5" style={{ color: primaryColor }} />
+                  </div>
+
+                  <div>
+                    <p className="font-black">Preview Ready</p>
+                    <p className="text-xs text-slate-400">
+                      Save first, then check public website.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => navigate("/")}
+                  className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-black transition hover:bg-white/10"
+                >
+                  <Home className="h-4 w-4" />
+                  View Website
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <DashboardCard
+            id="brand"
+            icon={Settings}
+            color={primaryColor}
+            title="Brand Settings"
+            text="Control company name, tagline and footer text."
+          >
             <div className="grid gap-5 md:grid-cols-2">
               <Field
                 label="Company Name"
@@ -241,61 +368,59 @@ export default function AdminDashboard({ settings, setSettings, navigate, onLogo
                 />
               </div>
             </div>
-          </section>
+          </DashboardCard>
 
-          <section
+          <DashboardCard
             id="colors"
-            className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 md:p-8"
+            icon={Palette}
+            color={primaryColor}
+            title="Color Control"
+            text="Change primary, secondary and accent colors used across the website."
           >
-            <SectionHeader
-              icon={Palette}
-              color={draft.primaryColor}
-              title="Color Control"
-              text="Change primary, secondary and accent colors used across the website."
-            />
-
             <div className="grid gap-5 md:grid-cols-3">
               <ColorField
                 label="Primary Color"
-                value={draft.primaryColor || "#22d3ee"}
+                value={primaryColor}
                 onChange={(value) => update("primaryColor", value)}
               />
 
               <ColorField
                 label="Secondary Color"
-                value={draft.secondaryColor || "#2563eb"}
+                value={secondaryColor}
                 onChange={(value) => update("secondaryColor", value)}
               />
 
               <ColorField
                 label="Accent Color"
-                value={draft.accentColor || "#a855f7"}
+                value={accentColor}
                 onChange={(value) => update("accentColor", value)}
               />
             </div>
-          </section>
+          </DashboardCard>
 
-          <section
+          <DashboardCard
             id="logo"
-            className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 md:p-8"
+            icon={ImagePlus}
+            color={primaryColor}
+            title="Logo Update"
+            text="Upload a logo and instantly apply it to the public website header and footer."
           >
-            <SectionHeader
-              icon={ImagePlus}
-              color={draft.primaryColor}
-              title="Logo Update"
-              text="Upload a logo and instantly apply it to the public website header and footer sections."
-            />
-
-            <div className="grid gap-6 md:grid-cols-[1fr_260px] md:items-center">
-              <label className="flex min-h-48 cursor-pointer flex-col items-center justify-center rounded-3xl border border-dashed border-white/20 bg-slate-950 p-8 text-center transition hover:bg-white/[0.04]">
-                <Upload
-                  className="mb-4 h-10 w-10"
-                  style={{ color: draft.primaryColor }}
-                />
-                <span className="text-lg font-bold">Upload Logo</span>
-                <span className="mt-2 text-sm text-slate-400">
-                  PNG, JPG, SVG or WebP recommended
+            <div className="grid gap-6 md:grid-cols-[1fr_280px] md:items-stretch">
+              <label className="group flex min-h-56 cursor-pointer flex-col items-center justify-center rounded-[1.75rem] border border-dashed border-white/20 bg-slate-950/70 p-8 text-center transition hover:border-white/30 hover:bg-white/[0.04]">
+                <span
+                  className="mb-5 flex h-16 w-16 items-center justify-center rounded-3xl transition group-hover:scale-105"
+                  style={{ backgroundColor: `${primaryColor}20` }}
+                >
+                  <Upload className="h-8 w-8" style={{ color: primaryColor }} />
                 </span>
+
+                <span className="text-xl font-black">Upload Logo</span>
+
+                <span className="mt-2 max-w-sm text-sm leading-6 text-slate-400">
+                  PNG, JPG, SVG or WebP recommended. The uploaded logo will be
+                  used across the public website.
+                </span>
+
                 <input
                   type="file"
                   accept="image/*"
@@ -304,32 +429,34 @@ export default function AdminDashboard({ settings, setSettings, navigate, onLogo
                 />
               </label>
 
-              <div className="rounded-3xl border border-white/10 bg-slate-950 p-6 text-center">
-                <div className="mx-auto flex min-h-28 w-full items-center justify-center rounded-3xl bg-white p-4">
-                  <LogoMark settings={draft} size="lg" />
+              <div className="flex flex-col justify-between rounded-[1.75rem] border border-white/10 bg-slate-950/70 p-5 text-center">
+                <div>
+                  <p className="mb-4 text-left text-sm font-black text-slate-300">
+                    Current Logo
+                  </p>
+
+                  <div className="flex min-h-32 w-full items-center justify-center rounded-3xl bg-white p-5">
+                    <LogoMark settings={draft} size="lg" />
+                  </div>
                 </div>
 
                 <button
                   onClick={() => update("logo", "")}
-                  className="mt-5 rounded-full border border-white/10 px-4 py-2 text-sm font-bold text-slate-300 hover:bg-white/10"
+                  className="mt-5 rounded-2xl border border-white/10 px-4 py-3 text-sm font-black text-slate-300 transition hover:bg-white/10 hover:text-white"
                 >
                   Remove Logo
                 </button>
               </div>
             </div>
-          </section>
+          </DashboardCard>
 
-          <section
+          <DashboardCard
             id="hero"
-            className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 md:p-8"
+            icon={Cpu}
+            color={primaryColor}
+            title="Hero Content"
+            text="Edit headline, paragraph and call-to-action button text."
           >
-            <SectionHeader
-              icon={Cpu}
-              color={draft.primaryColor}
-              title="Hero Content"
-              text="Edit headline, paragraph and call-to-action button text."
-            />
-
             <div className="grid gap-5">
               <Field
                 label="Hero Badge"
@@ -365,19 +492,15 @@ export default function AdminDashboard({ settings, setSettings, navigate, onLogo
                 />
               </div>
             </div>
-          </section>
+          </DashboardCard>
 
-          <section
+          <DashboardCard
             id="contact-settings"
-            className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 md:p-8"
+            icon={Phone}
+            color={primaryColor}
+            title="Contact & Social Details"
+            text="Update business contact information displayed on the website."
           >
-            <SectionHeader
-              icon={Phone}
-              color={draft.primaryColor}
-              title="Contact & Social Details"
-              text="Update business contact information displayed on the website."
-            />
-
             <div className="grid gap-5 md:grid-cols-2">
               <Field
                 label="Email"
@@ -411,37 +534,23 @@ export default function AdminDashboard({ settings, setSettings, navigate, onLogo
                 />
               </div>
             </div>
-          </section>
+          </DashboardCard>
 
-          <section
+          <DashboardCard
             id="contact-email-settings"
-            className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 md:p-8"
+            icon={Mail}
+            color={primaryColor}
+            title="Contact Email Notifications"
+            text="Control whether contact form inquiries are sent to email."
           >
-            <SectionHeader
-              icon={Mail}
-              color={draft.primaryColor}
-              title="Contact Email Notifications"
-              text="Control whether contact form inquiries are sent to email."
-            />
-
             <div className="grid gap-5">
-              <label className="flex flex-col gap-4 rounded-3xl border border-white/10 bg-slate-950 p-5 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="font-bold text-white">Enable Contact Email</p>
-                  <p className="mt-1 text-sm text-slate-400">
-                    Send an email when a visitor submits the contact form.
-                  </p>
-                </div>
-
-                <input
-                  type="checkbox"
-                  checked={Boolean(draft.contactEmailEnabled)}
-                  onChange={(event) =>
-                    update("contactEmailEnabled", event.target.checked)
-                  }
-                  className="h-5 w-5"
-                />
-              </label>
+              <TogglePanel
+                title="Enable Contact Email"
+                text="Send an email when a visitor submits the contact form."
+                checked={Boolean(draft.contactEmailEnabled)}
+                onChange={(checked) => update("contactEmailEnabled", checked)}
+                color={primaryColor}
+              />
 
               <div className="grid gap-5 md:grid-cols-2">
                 <Field
@@ -461,35 +570,23 @@ export default function AdminDashboard({ settings, setSettings, navigate, onLogo
                 />
               </div>
             </div>
-          </section>
+          </DashboardCard>
 
-          <section
+          <DashboardCard
             id="smtp-settings"
-            className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 md:p-8"
+            icon={Server}
+            color={primaryColor}
+            title="SMTP Settings"
+            text="Configure SMTP server settings for sending website inquiry emails."
           >
-            <SectionHeader
-              icon={Server}
-              color={draft.primaryColor}
-              title="SMTP Settings"
-              text="Configure SMTP server settings for sending website inquiry emails."
-            />
-
             <div className="grid gap-5">
-              <label className="flex flex-col gap-4 rounded-3xl border border-white/10 bg-slate-950 p-5 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="font-bold text-white">Enable SMTP</p>
-                  <p className="mt-1 text-sm text-slate-400">
-                    Use these SMTP settings to send contact form emails.
-                  </p>
-                </div>
-
-                <input
-                  type="checkbox"
-                  checked={Boolean(draft.smtpEnabled)}
-                  onChange={(event) => update("smtpEnabled", event.target.checked)}
-                  className="h-5 w-5"
-                />
-              </label>
+              <TogglePanel
+                title="Enable SMTP"
+                text="Use these SMTP settings to send contact form emails."
+                checked={Boolean(draft.smtpEnabled)}
+                onChange={(checked) => update("smtpEnabled", checked)}
+                color={primaryColor}
+              />
 
               <div className="grid gap-5 md:grid-cols-2">
                 <Field
@@ -532,28 +629,28 @@ export default function AdminDashboard({ settings, setSettings, navigate, onLogo
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-amber-400/20 bg-amber-400/10 p-5 text-sm leading-6 text-amber-100">
+              <div className="rounded-[1.5rem] border border-amber-400/20 bg-amber-400/10 p-5 text-sm leading-6 text-amber-100">
                 For Gmail, use a Gmail App Password, not your normal Gmail
                 password. Do not expose SMTP password in the public settings API.
               </div>
             </div>
-          </section>
+          </DashboardCard>
 
-          <section className="rounded-[2rem] border border-white/10 bg-slate-900 p-6 md:p-8">
-            <div className="grid gap-6 md:grid-cols-[1fr_220px] md:items-center">
+          <section className="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6 shadow-2xl shadow-black/20 backdrop-blur-2xl md:p-8">
+            <div className="grid gap-6 md:grid-cols-[1fr_240px] md:items-center">
               <div>
-                <h2 className="text-2xl font-black">Live Preview</h2>
-                <p className="mt-2 text-slate-400">
-                  Save changes, then click View Website to confirm the public
-                  landing page updates.
+                <h2 className="text-2xl font-black">Ready to publish?</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-400">
+                  Save all changes and open the public website to verify your
+                  updated branding and content.
                 </p>
               </div>
 
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="inline-flex items-center justify-center gap-2 rounded-full px-6 py-4 font-black text-slate-950 disabled:cursor-not-allowed disabled:opacity-60"
-                style={{ backgroundColor: draft.primaryColor }}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-4 font-black text-slate-950 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+                style={gradientButtonStyle}
               >
                 <Save className="h-5 w-5" />
                 {saving ? "Saving..." : "Save All Changes"}
@@ -566,14 +663,90 @@ export default function AdminDashboard({ settings, setSettings, navigate, onLogo
   );
 }
 
-function SectionHeader({ icon: Icon, color, title, text }) {
+function DashboardCard({ id, icon: Icon, color, title, text, children }) {
   return (
-    <div className="mb-6 flex items-center gap-3">
-      <Icon className="h-6 w-6" style={{ color }} />
-      <div>
-        <h2 className="text-2xl font-black">{title}</h2>
-        <p className="text-sm text-slate-400">{text}</p>
+    <section
+      id={id}
+      className="rounded-[2rem] border border-white/10 bg-white/[0.055] p-5 shadow-2xl shadow-black/20 backdrop-blur-2xl sm:p-6 md:p-8"
+    >
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-4">
+          <div
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl"
+            style={{ backgroundColor: `${color}20`, color }}
+          >
+            <Icon className="h-5 w-5" />
+          </div>
+
+          <div>
+            <h2 className="text-2xl font-black tracking-tight">{title}</h2>
+            <p className="mt-1 text-sm leading-6 text-slate-400">{text}</p>
+          </div>
+        </div>
       </div>
+
+      {children}
+    </section>
+  );
+}
+
+function TogglePanel({ title, text, checked, onChange, color }) {
+  return (
+    <label className="flex cursor-pointer flex-col gap-4 rounded-[1.5rem] border border-white/10 bg-slate-950/70 p-5 transition hover:bg-white/[0.04] sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <p className="font-black text-white">{title}</p>
+        <p className="mt-1 text-sm leading-6 text-slate-400">{text}</p>
+      </div>
+
+      <span
+        className={`relative h-7 w-14 shrink-0 rounded-full border transition ${
+          checked
+            ? "border-transparent"
+            : "border-white/10 bg-white/10"
+        }`}
+        style={checked ? { backgroundColor: color } : undefined}
+      >
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(event) => onChange(event.target.checked)}
+          className="sr-only"
+        />
+
+        <span
+          className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-lg transition ${
+            checked ? "left-8" : "left-1"
+          }`}
+        />
+      </span>
+    </label>
+  );
+}
+
+function ColorDot({ label, value }) {
+  return (
+    <div className="border-r border-white/10 p-3 last:border-r-0">
+      <div className="mx-auto h-6 w-6 rounded-full" style={{ backgroundColor: value }} />
+      <p className="mt-2 truncate text-center text-[10px] font-bold uppercase tracking-wide text-slate-500">
+        {label}
+      </p>
+    </div>
+  );
+}
+
+function AlertBox({ type, icon: Icon, text }) {
+  const isSuccess = type === "success";
+
+  return (
+    <div
+      className={`mt-4 flex items-start gap-3 rounded-3xl border px-4 py-3 text-sm font-semibold ${
+        isSuccess
+          ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-300"
+          : "border-red-400/20 bg-red-400/10 text-red-200"
+      }`}
+    >
+      <Icon className="mt-0.5 h-4 w-4 shrink-0" />
+      <span>{text}</span>
     </div>
   );
 }

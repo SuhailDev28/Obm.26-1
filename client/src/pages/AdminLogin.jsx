@@ -1,17 +1,18 @@
 // client/src/pages/AdminLogin.jsx
+
 import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
   Eye,
   EyeOff,
+  Globe2,
+  LayoutDashboard,
   Lock,
   Mail,
+  Palette,
   ShieldCheck,
   Sparkles,
-  Palette,
-  LayoutDashboard,
-  Globe2,
 } from "lucide-react";
 
 import { loginAdmin } from "../lib/api.js";
@@ -21,10 +22,12 @@ const fallbackSettings = {
   siteName: "OBM",
   tagline: "Creative Digital Solutions",
   logo: "",
+  lightLogo: "",
   primaryColor: "#22d3ee",
   secondaryColor: "#2563eb",
   accentColor: "#a855f7",
   themeMode: "dark",
+  adminThemeMode: "dark",
 };
 
 function normalizeHex(hex, fallback = "#22d3ee") {
@@ -47,12 +50,12 @@ function hexToRgba(hex, opacity = 1) {
   return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 }
 
-function getInitialThemeMode(settingsThemeMode) {
-  const explicitMode = String(settingsThemeMode || "").toLowerCase();
+function getInitialThemeMode(settings = {}) {
+  const adminMode = String(settings.adminThemeMode || "").toLowerCase();
+  const themeMode = String(settings.themeMode || "").toLowerCase();
 
-  if (explicitMode === "light" || explicitMode === "dark") {
-    return explicitMode;
-  }
+  if (adminMode === "light" || adminMode === "dark") return adminMode;
+  if (themeMode === "light" || themeMode === "dark") return themeMode;
 
   if (typeof document !== "undefined") {
     const html = document.documentElement;
@@ -60,6 +63,7 @@ function getInitialThemeMode(settingsThemeMode) {
     if (
       html.classList.contains("light") ||
       html.classList.contains("obm-light") ||
+      html.classList.contains("obm-admin-light") ||
       html.dataset.theme === "light"
     ) {
       return "light";
@@ -68,31 +72,35 @@ function getInitialThemeMode(settingsThemeMode) {
     if (
       html.classList.contains("dark") ||
       html.classList.contains("obm-dark") ||
+      html.classList.contains("obm-admin-dark") ||
       html.dataset.theme === "dark"
     ) {
       return "dark";
     }
   }
 
-  if (
-    typeof window !== "undefined" &&
-    window.matchMedia?.("(prefers-color-scheme: light)")?.matches
-  ) {
-    return "light";
-  }
-
   return "dark";
 }
 
-function getLogoSrc(settings = {}) {
-  return (
-    settings.logoUrl ||
-    settings.logo ||
-    settings.siteLogo ||
-    settings.brandLogo ||
-    settings.headerLogo ||
-    ""
-  );
+function getLogoSrc(settings = {}, mode = "dark") {
+  const isLight = mode === "light";
+
+  return String(
+    isLight
+      ? settings.lightLogo ||
+          settings.logoUrl ||
+          settings.logo ||
+          settings.siteLogo ||
+          settings.brandLogo ||
+          settings.headerLogo ||
+          ""
+      : settings.logoUrl ||
+          settings.logo ||
+          settings.siteLogo ||
+          settings.brandLogo ||
+          settings.headerLogo ||
+          "",
+  ).trim();
 }
 
 export default function AdminLogin({
@@ -104,27 +112,39 @@ export default function AdminLogin({
     () => ({
       ...fallbackSettings,
       ...(settings || {}),
-      primaryColor: normalizeHex(settings?.primaryColor, fallbackSettings.primaryColor),
+      primaryColor: normalizeHex(
+        settings?.primaryColor,
+        fallbackSettings.primaryColor,
+      ),
       secondaryColor: normalizeHex(
         settings?.secondaryColor,
         fallbackSettings.secondaryColor,
       ),
-      accentColor: normalizeHex(settings?.accentColor, fallbackSettings.accentColor),
+      accentColor: normalizeHex(
+        settings?.accentColor,
+        fallbackSettings.accentColor,
+      ),
     }),
     [settings],
   );
 
-  const [mode, setMode] = useState(() => getInitialThemeMode(theme.themeMode));
+  const [mode, setMode] = useState(() => getInitialThemeMode(theme));
   const [logoFailed, setLogoFailed] = useState(false);
+
+  const isLight = mode === "light";
 
   const primary = theme.primaryColor;
   const secondary = theme.secondaryColor;
   const accent = theme.accentColor;
   const siteName = theme.siteName || "OBM";
   const tagline = theme.tagline || "Creative Digital Solutions";
-  const logoSrc = getLogoSrc(theme);
+  const logoSrc = getLogoSrc(theme, mode);
 
-  const isLight = mode === "light";
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const pageStyles = {
     "--obm-primary": primary,
@@ -149,17 +169,12 @@ export default function AdminLogin({
   );
 
   useEffect(() => {
-    setMode(getInitialThemeMode(theme.themeMode));
-  }, [theme.themeMode]);
+    setMode(getInitialThemeMode(theme));
+  }, [theme.adminThemeMode, theme.themeMode]);
 
   useEffect(() => {
     setLogoFailed(false);
-  }, [logoSrc]);
-
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  }, [logoSrc, mode]);
 
   const submit = async (event) => {
     event.preventDefault();
@@ -307,7 +322,8 @@ export default function AdminLogin({
             </div>
 
             <h1 className="mt-7 max-w-3xl text-4xl font-black leading-[1.05] tracking-tight sm:text-5xl xl:text-6xl">
-              Manage your website, brand, and digital content from one dashboard.
+              Manage your website, brand, and digital content from one
+              dashboard.
             </h1>
 
             <p
@@ -359,7 +375,10 @@ export default function AdminLogin({
                     <div
                       className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl"
                       style={{
-                        backgroundColor: hexToRgba(item.color, isLight ? 0.14 : 0.16),
+                        backgroundColor: hexToRgba(
+                          item.color,
+                          isLight ? 0.14 : 0.16,
+                        ),
                         color: item.color,
                       }}
                     >
@@ -367,6 +386,7 @@ export default function AdminLogin({
                     </div>
 
                     <p className="text-xl font-black">{item.title}</p>
+
                     <p
                       className={[
                         "mt-2 text-sm",
@@ -449,6 +469,7 @@ export default function AdminLogin({
                       ].join(" ")}
                     >
                       <img
+                        key={`${mode}-${logoSrc}`}
                         src={logoSrc}
                         alt={`${siteName} logo`}
                         className="h-full w-full object-contain"
@@ -534,6 +555,7 @@ export default function AdminLogin({
                       value={email}
                       onChange={(event) => setEmail(event.target.value)}
                       autoComplete="email"
+                      placeholder="Admin email"
                       className={[
                         "w-full rounded-2xl border px-12 py-4 outline-none transition placeholder:text-slate-400 focus:ring-4",
                         isLight
@@ -579,6 +601,7 @@ export default function AdminLogin({
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
                       autoComplete="current-password"
+                      placeholder="Admin password"
                       className={[
                         "w-full rounded-2xl border px-12 py-4 pr-14 outline-none transition placeholder:text-slate-400 focus:ring-4",
                         isLight
@@ -608,7 +631,9 @@ export default function AdminLogin({
                           ? "text-slate-500 hover:bg-slate-100 hover:text-slate-950"
                           : "text-slate-400 hover:bg-white/10 hover:text-white",
                       ].join(" ")}
-                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
                     >
                       {showPassword ? (
                         <EyeOff className="h-5 w-5" />
@@ -657,8 +682,6 @@ export default function AdminLogin({
               >
                 Back to Website
               </button>
-
-            
             </form>
           </motion.section>
         </div>

@@ -13,6 +13,7 @@ const uploadDir = path.join(process.cwd(), "src", "uploads");
 fs.mkdirSync(uploadDir, { recursive: true });
 
 const lightModeDefaultSettings = {
+  lightLogo: "",
   lightPrimaryColor: "#2563eb",
   lightSecondaryColor: "#7c3aed",
   lightAccentColor: "#0891b2",
@@ -37,6 +38,8 @@ const effectiveDefaultSettings = {
 const BOOLEAN_FIELDS = new Set(["contactEmailEnabled", "smtpEnabled"]);
 
 const THEME_MODE_FIELDS = new Set(["adminThemeMode"]);
+
+const LOGO_FIELDS = new Set(["logo", "lightLogo"]);
 
 const PROTECTED_FIELDS = new Set([
   "key",
@@ -90,10 +93,15 @@ function mergeSettings(settings = {}) {
   return {
     ...effectiveDefaultSettings,
     ...settings,
+
+    logo: settings.logo || effectiveDefaultSettings.logo,
+    lightLogo: settings.lightLogo || effectiveDefaultSettings.lightLogo,
+
     adminThemeMode:
       settings.adminThemeMode === "light" || settings.adminThemeMode === "dark"
         ? settings.adminThemeMode
         : effectiveDefaultSettings.adminThemeMode,
+
     smtpPass: settings.smtpPass || "",
   };
 }
@@ -136,6 +144,12 @@ function sanitizeSettings(input = {}) {
   }
 
   return output;
+}
+
+function normalizeLogoField(value) {
+  const field = String(value || "logo").trim();
+
+  return LOGO_FIELDS.has(field) ? field : "logo";
 }
 
 function deleteOldLogoFile(logoPath = "") {
@@ -230,15 +244,15 @@ router.post(
         });
       }
 
+      const logoField = normalizeLogoField(req.body.logoField);
       const existingSettings = await getSettingsDocument();
-
       const logo = `/uploads/${req.file.filename}`;
 
       const settings = await SiteSetting.findOneAndUpdate(
         { key: "main" },
         {
           $set: {
-            logo,
+            [logoField]: logo,
             updatedBy: req.admin?._id || null,
           },
           $setOnInsert: {
@@ -251,13 +265,16 @@ router.post(
         },
       ).lean();
 
-      if (existingSettings?.logo && existingSettings.logo !== logo) {
-        deleteOldLogoFile(existingSettings.logo);
+      const previousLogo = existingSettings?.[logoField];
+
+      if (previousLogo && previousLogo !== logo) {
+        deleteOldLogoFile(previousLogo);
       }
 
       res.json({
         success: true,
         logo,
+        logoField,
         settings: mergeSettings(settings),
       });
     } catch (error) {
@@ -292,6 +309,13 @@ router.post("/admin/reset-settings", requireAdmin, async (req, res, next) => {
       existingSettings.logo !== effectiveDefaultSettings.logo
     ) {
       deleteOldLogoFile(existingSettings.logo);
+    }
+
+    if (
+      existingSettings?.lightLogo &&
+      existingSettings.lightLogo !== effectiveDefaultSettings.lightLogo
+    ) {
+      deleteOldLogoFile(existingSettings.lightLogo);
     }
 
     res.json({

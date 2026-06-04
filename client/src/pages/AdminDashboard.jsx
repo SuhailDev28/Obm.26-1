@@ -6,12 +6,10 @@ import {
   Cpu,
   ExternalLink,
   Eye,
-  Globe2,
   Home,
   ImagePlus,
   LogOut,
   Mail,
-  MapPin,
   Moon,
   Palette,
   Phone,
@@ -141,13 +139,9 @@ function getAdminTheme(isLight) {
     softPanel: isLight
       ? "border-slate-200 bg-slate-100"
       : "border-white/10 bg-white/[0.04]",
-    text: isLight ? "text-slate-950" : "text-white",
     muted: isLight ? "text-slate-600" : "text-slate-400",
     faint: isLight ? "text-slate-500" : "text-slate-500",
     border: isLight ? "border-slate-200" : "border-white/10",
-    input: isLight
-      ? "border-slate-200 bg-white text-slate-950 placeholder:text-slate-400 focus:bg-white"
-      : "border-white/10 bg-white/[0.04] text-white placeholder:text-slate-600 focus:bg-white/[0.07]",
     navItem: isLight
       ? "text-slate-600 hover:border-slate-200 hover:bg-slate-100 hover:text-slate-950"
       : "text-slate-300 hover:border-white/10 hover:bg-white/[0.06] hover:text-white",
@@ -212,7 +206,7 @@ export default function AdminDashboard({
     window.setTimeout(() => setSaved(false), 2200);
   };
 
-  const handleLogoUpload = async (event) => {
+  const handleLogoUpload = async (event, logoField = "logo") => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -220,7 +214,7 @@ export default function AdminDashboard({
       setSaving(true);
       setError("");
 
-      const nextSettings = await uploadLogoToApi(file);
+      const nextSettings = await uploadLogoToApi(file, logoField);
 
       setDraft(nextSettings);
       setSettings(nextSettings);
@@ -337,9 +331,9 @@ export default function AdminDashboard({
 
   const menuItems = [
     [Settings, "Brand Settings", "Company name, tagline", "#brand"],
-    [Palette, "Color Control", "Primary, secondary, accent", "#colors"],
+    [Palette, "Brand Colors", "Primary, secondary, accent", "#colors"],
     [Palette, "Light Mode Colors", "Background, text, icons", "#light-colors"],
-    [ImagePlus, "Logo Upload", "Header and footer logo", "#logo"],
+    [ImagePlus, "Logo Upload", "Dark and light logos", "#logo"],
     [Cpu, "Hero Content", "Landing page content", "#hero"],
     [Phone, "Contact Details", "Phone, email, location", "#contact-settings"],
     [Share2, "Social Media", "Social links and integrations", "#social-settings"],
@@ -443,7 +437,9 @@ export default function AdminDashboard({
       <div className="pointer-events-none fixed inset-0 opacity-70">
         <div
           className="absolute -left-32 top-10 h-80 w-80 rounded-full blur-3xl"
-          style={{ backgroundColor: hexToRgba(primaryColor, isLight ? 0.13 : 0.15) }}
+          style={{
+            backgroundColor: hexToRgba(primaryColor, isLight ? 0.13 : 0.15),
+          }}
         />
 
         <div
@@ -455,14 +451,20 @@ export default function AdminDashboard({
 
         <div
           className="absolute bottom-0 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full blur-3xl"
-          style={{ backgroundColor: hexToRgba(accentColor, isLight ? 0.08 : 0.1) }}
+          style={{
+            backgroundColor: hexToRgba(accentColor, isLight ? 0.08 : 0.1),
+          }}
         />
       </div>
 
       <header className={`sticky top-0 z-50 border-b backdrop-blur-2xl ${ui.header}`}>
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex min-w-0 items-center gap-4">
-            <AdminLogoBox settings={draft} isLight={isLight} />
+            <AdminLogoBox
+              settings={draft}
+              isLight={isLight}
+              logoField={isLight ? "lightLogo" : "logo"}
+            />
 
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
@@ -533,7 +535,12 @@ export default function AdminDashboard({
           <div className={`overflow-hidden rounded-[1.75rem] border ${ui.border}`}>
             <div className="p-5" style={heroPreviewStyle}>
               <div className="flex items-center justify-between gap-3">
-                <AdminLogoBox settings={draft} size="lg" isLight={isLight} />
+                <AdminLogoBox
+                  settings={draft}
+                  size="lg"
+                  isLight={isLight}
+                  logoField={isLight ? "lightLogo" : "logo"}
+                />
 
                 <div
                   className={`rounded-full border px-3 py-1 text-xs font-bold backdrop-blur ${
@@ -719,8 +726,8 @@ export default function AdminDashboard({
             id="colors"
             icon={Palette}
             color={primaryColor}
-            title="Dark Mode Color Control"
-            text="Change primary, secondary and accent colors used across the dark website theme."
+            title="Brand Color Control"
+            text="Change primary, secondary and accent colors used across brand elements and the dark website theme."
             isLight={isLight}
           >
             <div className="grid gap-5 md:grid-cols-3">
@@ -880,17 +887,6 @@ export default function AdminDashboard({
                   onChange={(value) => update("lightIconColor", value)}
                 />
               </div>
-
-              <div
-                className={`rounded-[1.5rem] border p-5 text-sm leading-6 ${
-                  isLight
-                    ? "border-cyan-200 bg-cyan-50 text-cyan-800"
-                    : "border-cyan-400/20 bg-cyan-400/10 text-cyan-100"
-                }`}
-              >
-                Recommended for light mode: keep background near white, text
-                dark, and icon/contrast color dark enough to be visible.
-              </div>
             </div>
           </DashboardCard>
 
@@ -898,63 +894,34 @@ export default function AdminDashboard({
             id="logo"
             icon={ImagePlus}
             color={primaryColor}
-            title="Logo Update"
-            text="Upload a logo and instantly apply it to the public website header and footer."
+            title="Logo Settings"
+            text="Upload separate logos for dark and light website modes."
             isLight={isLight}
           >
-            <div className="grid gap-6 md:grid-cols-[1fr_280px] md:items-stretch">
-              <label
-                className={`group flex min-h-56 cursor-pointer flex-col items-center justify-center rounded-[1.75rem] border border-dashed p-8 text-center transition ${
-                  isLight
-                    ? "border-slate-300 bg-slate-50 hover:border-slate-400 hover:bg-slate-100"
-                    : "border-white/20 bg-slate-950/70 hover:border-white/30 hover:bg-white/[0.04]"
-                }`}
-              >
-                <span
-                  className="mb-5 flex h-16 w-16 items-center justify-center rounded-3xl transition group-hover:scale-105"
-                  style={{ backgroundColor: hexToRgba(primaryColor, 0.14) }}
-                >
-                  <Upload className="h-8 w-8" style={{ color: primaryColor }} />
-                </span>
+            <div className="grid gap-6 xl:grid-cols-2">
+              <LogoUploadPanel
+                title="Dark Mode Logo"
+                description="Used on dark backgrounds and dark website mode."
+                logoField="logo"
+                settings={draft}
+                isLight={isLight}
+                ui={ui}
+                color={primaryColor}
+                onUpload={handleLogoUpload}
+                onRemove={() => update("logo", "")}
+              />
 
-                <span className="text-xl font-black">Upload Logo</span>
-
-                <span className={`mt-2 max-w-sm text-sm leading-6 ${ui.muted}`}>
-                  PNG, JPG, SVG or WebP recommended. The uploaded logo will be
-                  used across the public website.
-                </span>
-
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleLogoUpload}
-                  className="hidden"
-                />
-              </label>
-
-              <div
-                className={`flex flex-col justify-between rounded-[1.75rem] border p-5 text-center ${ui.innerPanel}`}
-              >
-                <div>
-                  <p className={`mb-4 text-left text-sm font-black ${ui.muted}`}>
-                    Current Logo
-                  </p>
-
-                  <div
-                    className={`flex min-h-32 w-full items-center justify-center rounded-3xl border p-5 ${ui.innerPanel}`}
-                  >
-                    <AdminLogoBox settings={draft} size="preview" isLight={isLight} />
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => update("logo", "")}
-                  className={`mt-5 rounded-2xl border px-4 py-3 text-sm font-black transition ${ui.secondaryButton}`}
-                >
-                  Remove Logo
-                </button>
-              </div>
+              <LogoUploadPanel
+                title="Light Mode Logo"
+                description="Used on white/light backgrounds and light website mode."
+                logoField="lightLogo"
+                settings={draft}
+                isLight={isLight}
+                ui={ui}
+                color={lightIconColor}
+                onUpload={handleLogoUpload}
+                onRemove={() => update("lightLogo", "")}
+              />
             </div>
           </DashboardCard>
 
@@ -1253,10 +1220,88 @@ export default function AdminDashboard({
   );
 }
 
-function AdminLogoBox({ settings, size = "header", isLight = false }) {
+function LogoUploadPanel({
+  title,
+  description,
+  logoField,
+  settings,
+  isLight,
+  ui,
+  color,
+  onUpload,
+  onRemove,
+}) {
+  return (
+    <div className={`rounded-[1.75rem] border p-5 ${ui.innerPanel}`}>
+      <div className="mb-5">
+        <p className="text-lg font-black">{title}</p>
+        <p className={`mt-1 text-sm leading-6 ${ui.muted}`}>{description}</p>
+      </div>
+
+      <label
+        className={`group flex min-h-48 cursor-pointer flex-col items-center justify-center rounded-[1.5rem] border border-dashed p-6 text-center transition ${
+          isLight
+            ? "border-slate-300 bg-white hover:border-slate-400 hover:bg-slate-100"
+            : "border-white/20 bg-slate-950/70 hover:border-white/30 hover:bg-white/[0.04]"
+        }`}
+      >
+        <span
+          className="mb-4 flex h-14 w-14 items-center justify-center rounded-3xl transition group-hover:scale-105"
+          style={{ backgroundColor: hexToRgba(color, 0.14) }}
+        >
+          <Upload className="h-7 w-7" style={{ color }} />
+        </span>
+
+        <span className="text-lg font-black">Upload {title}</span>
+
+        <span className={`mt-2 max-w-sm text-sm leading-6 ${ui.muted}`}>
+          PNG, JPG, SVG or WebP. Transparent PNG/SVG is recommended.
+        </span>
+
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(event) => onUpload(event, logoField)}
+          className="hidden"
+        />
+      </label>
+
+      <div className="mt-5">
+        <p className={`mb-3 text-sm font-black ${ui.muted}`}>Current Preview</p>
+
+        <div
+          className={`flex min-h-32 w-full items-center justify-center rounded-3xl border p-5 ${ui.innerPanel}`}
+        >
+          <AdminLogoBox
+            settings={settings}
+            size="preview"
+            isLight={isLight}
+            logoField={logoField}
+          />
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={onRemove}
+        className={`mt-5 w-full rounded-2xl border px-4 py-3 text-sm font-black transition ${ui.secondaryButton}`}
+      >
+        Remove {title}
+      </button>
+    </div>
+  );
+}
+
+function AdminLogoBox({
+  settings,
+  size = "header",
+  isLight = false,
+  logoField = "logo",
+}) {
   const [imageFailed, setImageFailed] = useState(false);
 
-  const logoUrl = resolveAssetUrl(settings?.logo);
+  const selectedLogo = settings?.[logoField] || settings?.logo || "";
+  const logoUrl = resolveAssetUrl(selectedLogo);
 
   useEffect(() => {
     setImageFailed(false);
@@ -1458,11 +1503,7 @@ function ColorDot({ label, value, isLight }) {
         style={{ backgroundColor: value }}
       />
 
-      <p
-        className={`mt-2 truncate text-center text-[10px] font-bold uppercase tracking-wide ${
-          isLight ? "text-slate-500" : "text-slate-500"
-        }`}
-      >
+      <p className="mt-2 truncate text-center text-[10px] font-bold uppercase tracking-wide text-slate-500">
         {label}
       </p>
     </div>

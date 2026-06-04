@@ -16,20 +16,37 @@ const FALLBACK_SETTINGS = {
   siteName: "OBM",
   tagline: "AI Consultancy & Digital Transformation",
   logo: "",
+  lightLogo: "",
   primaryColor: "#22d3ee",
   secondaryColor: "#2563eb",
 };
 
-function SafeLogo({ settings, variant = "navbar", className = "" }) {
+function SafeLogo({
+  settings,
+  variant = "navbar",
+  themeMode = "dark",
+  className = "",
+}) {
   const [logoFailed, setLogoFailed] = useState(false);
 
-  const logoUrl = String(settings?.logo || "").trim();
-  const hasLogo = Boolean(logoUrl) && !logoFailed;
+  const isLight = themeMode === "light";
+
+  const selectedLogo = String(
+    isLight
+      ? settings?.lightLogo || settings?.logo || ""
+      : settings?.logo || ""
+  ).trim();
+
+  const hasLogo = Boolean(selectedLogo) && !logoFailed;
+
+  useEffect(() => {
+    setLogoFailed(false);
+  }, [selectedLogo]);
 
   if (hasLogo) {
     return (
       <img
-        src={logoUrl}
+        src={selectedLogo}
         alt={settings?.siteName || "OBM"}
         className={`h-10 w-10 rounded-xl object-contain sm:h-11 sm:w-11 ${className}`}
         loading="eager"
@@ -57,8 +74,8 @@ export default function PublicNav({
       siteName: settings?.siteName || FALLBACK_SETTINGS.siteName,
       tagline: settings?.tagline || FALLBACK_SETTINGS.tagline,
       logo: settings?.logo || FALLBACK_SETTINGS.logo,
-      primaryColor:
-        settings?.primaryColor || FALLBACK_SETTINGS.primaryColor,
+      lightLogo: settings?.lightLogo || FALLBACK_SETTINGS.lightLogo,
+      primaryColor: settings?.primaryColor || FALLBACK_SETTINGS.primaryColor,
       secondaryColor:
         settings?.secondaryColor || FALLBACK_SETTINGS.secondaryColor,
     }),
@@ -156,7 +173,11 @@ export default function PublicNav({
             aria-label="Go to home"
           >
             <div className="shrink-0 transition duration-300 group-hover:scale-105">
-              <SafeLogo settings={safeSettings} variant="navbar" />
+              <SafeLogo
+                settings={safeSettings}
+                variant="navbar"
+                themeMode={themeMode}
+              />
             </div>
 
             <div className="min-w-0">
@@ -296,7 +317,11 @@ export default function PublicNav({
                   }`}
                 >
                   <div className="shrink-0">
-                    <SafeLogo settings={safeSettings} variant="navbar" />
+                    <SafeLogo
+                      settings={safeSettings}
+                      variant="navbar"
+                      themeMode={themeMode}
+                    />
                   </div>
 
                   <div className="min-w-0">

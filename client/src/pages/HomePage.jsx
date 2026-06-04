@@ -1,4 +1,6 @@
-import React, { useMemo, useState } from "react";
+// client/src/pages/HomePage.jsx
+
+import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -7,7 +9,6 @@ import {
   CheckCircle2,
   Cpu,
   Database,
-  ExternalLink,
   Globe2,
   Layers3,
   Mail,
@@ -52,6 +53,8 @@ const FALLBACK_API_ORIGIN = "http://localhost:5001";
 const FALLBACK_SETTINGS = {
   siteName: "OBM",
   logo: "",
+  lightLogo: "",
+
   primaryColor: "#22d3ee",
   secondaryColor: "#2563eb",
   accentColor: "#a855f7",
@@ -164,7 +167,7 @@ const socialPlatforms = [
     key: "xTwitter",
     label: "X",
     icon: FaXTwitter,
-    brandColor: "#FFFFFF",
+    brandColor: "#111827",
   },
   {
     key: "youtube",
@@ -176,19 +179,19 @@ const socialPlatforms = [
     key: "tiktok",
     label: "TikTok",
     icon: FaTiktok,
-    brandColor: "#FFFFFF",
+    brandColor: "#111827",
   },
   {
     key: "threads",
     label: "Threads",
     icon: FaThreads,
-    brandColor: "#FFFFFF",
+    brandColor: "#111827",
   },
   {
     key: "snapchat",
     label: "Snapchat",
     icon: FaSnapchatGhost,
-    brandColor: "#FFFC00",
+    brandColor: "#ca8a04",
   },
   {
     key: "pinterest",
@@ -218,7 +221,7 @@ const socialPlatforms = [
     key: "websiteUrl",
     label: "Website",
     icon: Globe2,
-    brandColor: "#FFFFFF",
+    brandColor: "#2563eb",
   },
 ];
 
@@ -271,6 +274,7 @@ function resolveSocialUrl(value, key = "") {
 
   if (key === "telegram") {
     if (raw.startsWith("http://") || raw.startsWith("https://")) return raw;
+
     return raw.startsWith("@")
       ? `https://t.me/${raw.replace("@", "")}`
       : `https://t.me/${raw}`;
@@ -323,6 +327,7 @@ function getRelativeLuminance(color) {
 
   const channel = (value) => {
     const normalized = value / 255;
+
     return normalized <= 0.03928
       ? normalized / 12.92
       : ((normalized + 0.055) / 1.055) ** 2.4;
@@ -336,30 +341,16 @@ function getRelativeLuminance(color) {
 }
 
 function getContrastRatio(colorA, colorB) {
-  const light = Math.max(getRelativeLuminance(colorA), getRelativeLuminance(colorB));
-  const dark = Math.min(getRelativeLuminance(colorA), getRelativeLuminance(colorB));
+  const light = Math.max(
+    getRelativeLuminance(colorA),
+    getRelativeLuminance(colorB),
+  );
+  const dark = Math.min(
+    getRelativeLuminance(colorA),
+    getRelativeLuminance(colorB),
+  );
 
   return (light + 0.05) / (dark + 0.05);
-}
-
-function getReadableAccentColor(primaryColor, secondaryColor, isLightMode) {
-  if (!isLightMode) return primaryColor;
-
-  const lightPageColor = "#F8FAFC";
-  const candidates = [
-    primaryColor,
-    secondaryColor,
-    "#2563EB",
-    "#0F172A",
-    "#111827",
-  ];
-
-  const readable = candidates
-    .map((color) => normalizeHexColor(color))
-    .filter(Boolean)
-    .find((color) => getContrastRatio(color, lightPageColor) >= 4.5);
-
-  return readable || "#0F172A";
 }
 
 function getSolidButtonTextColor(backgroundColor) {
@@ -377,11 +368,31 @@ function getActiveSocialLinks(settings) {
     .filter((platform) => Boolean(platform.value));
 }
 
-function SafeLogo({ settings, size = "lg", className = "" }) {
+function SafeLogo({
+  settings,
+  size = "lg",
+  className = "",
+  themeMode = "dark",
+  logoField = "",
+}) {
   const [logoFailed, setLogoFailed] = useState(false);
 
-  const logoUrl = resolveAssetUrl(settings?.logo);
+  const isLight = themeMode === "light";
+
+  const selectedLogo = String(
+    logoField && settings?.[logoField]
+      ? settings[logoField]
+      : isLight
+        ? settings?.lightLogo || settings?.logo || ""
+        : settings?.logo || "",
+  ).trim();
+
+  const logoUrl = resolveAssetUrl(selectedLogo);
   const hasLogo = Boolean(logoUrl) && !logoFailed;
+
+  useEffect(() => {
+    setLogoFailed(false);
+  }, [logoUrl]);
 
   if (hasLogo) {
     return (
@@ -395,7 +406,14 @@ function SafeLogo({ settings, size = "lg", className = "" }) {
     );
   }
 
-  return <LogoMark settings={settings} size={size} />;
+  return (
+    <LogoMark
+      settings={settings}
+      size={size}
+      themeMode={themeMode}
+      logoField={logoField}
+    />
+  );
 }
 
 function SocialIconLink({
@@ -406,6 +424,7 @@ function SocialIconLink({
 }) {
   const Icon = platform.icon;
   const href = resolveSocialUrl(platform.value, platform.key);
+  const isLight = Boolean(settings.isLightMode);
 
   return (
     <motion.a
@@ -416,22 +435,26 @@ function SocialIconLink({
       title={platform.label}
       whileHover={{ y: -4, scale: 1.06 }}
       whileTap={{ scale: 0.96 }}
-      className={`group inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.04] text-slate-300 transition hover:bg-white/10 hover:text-white ${
+      className={`group inline-flex items-center justify-center gap-2 rounded-full border transition ${
         compact ? "h-10 w-10" : showLabel ? "px-4 py-3 text-sm" : "h-11 w-11"
+      } ${
+        isLight
+          ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-950"
+          : "border-white/10 bg-white/[0.04] text-slate-300 hover:bg-white/10 hover:text-white"
       }`}
     >
       <span
-        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 transition group-hover:scale-110"
-        style={{ color: settings.iconColor || settings.primaryColor }}
+        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition group-hover:scale-110 ${
+          isLight ? "bg-slate-100" : "bg-white/10"
+        }`}
+        style={{
+          color: platform.brandColor || settings.iconColor || settings.primaryColor,
+        }}
       >
         <Icon className="h-3.5 w-3.5" />
       </span>
 
-      {showLabel && (
-        <span className="font-bold">
-          {platform.label}
-        </span>
-      )}
+      {showLabel && <span className="font-bold">{platform.label}</span>}
     </motion.a>
   );
 }
@@ -496,7 +519,7 @@ function AnimatedGrid({ settings }) {
   );
 }
 
-function HeroDashboard({ settings }) {
+function HeroDashboard({ settings, themeMode = "dark" }) {
   const metrics = [
     {
       icon: BarChart3,
@@ -559,7 +582,12 @@ function HeroDashboard({ settings }) {
           <div className="relative mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-3 sm:gap-4">
               <div className="obm-dashboard-logo-box flex min-h-14 min-w-24 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-slate-950 p-2 sm:min-h-16 sm:min-w-28 sm:p-3">
-                <SafeLogo settings={settings} size="lg" />
+                <SafeLogo
+                  settings={settings}
+                  size="lg"
+                  themeMode={themeMode}
+                  logoField={themeMode === "light" ? "lightLogo" : "logo"}
+                />
               </div>
 
               <div className="min-w-0">
@@ -600,7 +628,9 @@ function HeroDashboard({ settings }) {
                   <div className="mb-5 flex items-center justify-between gap-3">
                     <Icon
                       className="h-6 w-6 shrink-0 sm:h-7 sm:w-7"
-                      style={{ color: settings.iconColor || settings.primaryColor }}
+                      style={{
+                        color: settings.iconColor || settings.primaryColor,
+                      }}
                     />
 
                     <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-bold text-white">
@@ -779,6 +809,8 @@ function IndustryCard({ item, settings }) {
 }
 
 function PricingCard({ pkg, settings }) {
+  const isLight = Boolean(settings.isLightMode);
+
   return (
     <motion.div
       variants={fadeUp}
@@ -789,13 +821,13 @@ function PricingCard({ pkg, settings }) {
           ? {
               borderColor: settings.primaryColor,
               backgroundColor: settings.primaryColor,
-              color: "#020617",
+              color: settings.solidButtonTextColor,
               boxShadow: `0 24px 90px ${settings.primaryColor}2b`,
             }
           : {
-              borderColor: "rgba(255,255,255,.1)",
-              backgroundColor: "#020617",
-              color: "white",
+              borderColor: settings.borderColor,
+              backgroundColor: isLight ? settings.surfaceColor : "#020617",
+              color: settings.textColor,
             }
       }
     >
@@ -808,7 +840,19 @@ function PricingCard({ pkg, settings }) {
 
       <div className="relative">
         {pkg.featured && (
-          <div className="mb-5 inline-flex rounded-full bg-slate-950 px-3 py-1 text-xs font-bold text-white">
+          <div
+            className="mb-5 inline-flex rounded-full px-3 py-1 text-xs font-bold"
+            style={{
+              backgroundColor:
+                settings.solidButtonTextColor === "#FFFFFF"
+                  ? "#020617"
+                  : "#ffffff",
+              color:
+                settings.solidButtonTextColor === "#FFFFFF"
+                  ? "#ffffff"
+                  : "#020617",
+            }}
+          >
             Most Popular
           </div>
         )}
@@ -816,9 +860,13 @@ function PricingCard({ pkg, settings }) {
         <h3 className="text-2xl font-black">{pkg.name}</h3>
 
         <p
-          className={`mt-3 text-sm leading-6 ${
-            pkg.featured ? "text-slate-800" : "text-slate-400"
-          }`}
+          className="mt-3 text-sm leading-6"
+          style={{
+            color: pkg.featured
+              ? settings.solidButtonTextColor
+              : settings.mutedTextColor,
+            opacity: pkg.featured ? 0.82 : 1,
+          }}
         >
           {pkg.desc}
         </p>
@@ -836,9 +884,23 @@ function PricingCard({ pkg, settings }) {
 
         <a
           href="#contact"
-          className={`mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-center font-bold sm:px-6 ${
-            pkg.featured ? "bg-slate-950 text-white" : "bg-white text-slate-950"
-          }`}
+          className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-center font-bold sm:px-6"
+          style={{
+            backgroundColor: pkg.featured
+              ? settings.solidButtonTextColor === "#FFFFFF"
+                ? "#020617"
+                : "#ffffff"
+              : isLight
+                ? "#0f172a"
+                : "#ffffff",
+            color: pkg.featured
+              ? settings.solidButtonTextColor === "#FFFFFF"
+                ? "#ffffff"
+                : "#020617"
+              : isLight
+                ? "#ffffff"
+                : "#020617",
+          }}
         >
           Request Proposal <ArrowRight className="h-5 w-5 shrink-0" />
         </a>
@@ -857,8 +919,14 @@ function WowStrip({ settings }) {
     ["UX Systems", MousePointer2],
   ];
 
+  const isLight = Boolean(settings.isLightMode);
+
   return (
-    <section className="relative overflow-hidden border-y border-white/10 bg-white/[0.025] py-4 sm:py-5">
+    <section
+      className={`relative overflow-hidden border-y py-4 sm:py-5 ${
+        isLight ? "border-slate-200 bg-white/70" : "border-white/10 bg-white/[0.025]"
+      }`}
+    >
       <motion.div
         className="flex w-max min-w-max gap-3 sm:gap-4"
         animate={{ x: ["0%", "-50%"] }}
@@ -867,7 +935,11 @@ function WowStrip({ settings }) {
         {[...items, ...items, ...items].map(([label, Icon], index) => (
           <div
             key={`${label}-${index}`}
-            className="mx-1 inline-flex items-center gap-3 rounded-full border border-white/10 bg-slate-950/70 px-4 py-2.5 text-xs font-bold text-slate-200 sm:mx-2 sm:px-5 sm:py-3 sm:text-sm"
+            className={`mx-1 inline-flex items-center gap-3 rounded-full border px-4 py-2.5 text-xs font-bold sm:mx-2 sm:px-5 sm:py-3 sm:text-sm ${
+              isLight
+                ? "border-slate-200 bg-white text-slate-700"
+                : "border-white/10 bg-slate-950/70 text-slate-200"
+            }`}
           >
             <Icon
               className="h-4 w-4 shrink-0"
@@ -914,6 +986,8 @@ export default function HomePage({
       lightBorderColor:
         settings?.lightBorderColor || FALLBACK_SETTINGS.lightBorderColor,
       siteName: settings?.siteName || FALLBACK_SETTINGS.siteName,
+      logo: settings?.logo || FALLBACK_SETTINGS.logo,
+      lightLogo: settings?.lightLogo || FALLBACK_SETTINGS.lightLogo,
       heroBadge: settings?.heroBadge || FALLBACK_SETTINGS.heroBadge,
       heroTitle: settings?.heroTitle || FALLBACK_SETTINGS.heroTitle,
       heroText: settings?.heroText || FALLBACK_SETTINGS.heroText,
@@ -978,6 +1052,8 @@ export default function HomePage({
       lightPrimaryColor: safeSettings.lightPrimaryColor,
       lightSecondaryColor: safeSettings.lightSecondaryColor,
       lightAccentColor: safeSettings.lightAccentColor,
+      logo: safeSettings.logo,
+      lightLogo: safeSettings.lightLogo,
       solidButtonTextColor: getSolidButtonTextColor(modeColors.primaryColor),
     };
   }, [safeSettings, isLightMode]);
@@ -1026,7 +1102,7 @@ export default function HomePage({
     <main
       className={`obm-home-page ${
         isLightMode ? "obm-home-light" : "obm-home-dark"
-      } min-h-screen w-full overflow-x-clip bg-slate-950 text-white`}
+      } min-h-screen w-full overflow-x-clip`}
       style={{
         "--obm-primary": visualSettings.primaryColor,
         "--obm-secondary": visualSettings.secondaryColor,
@@ -1178,7 +1254,9 @@ export default function HomePage({
             className="max-w-3xl min-w-0 text-center sm:text-left"
           >
             <motion.div variants={fadeUp}>
-              <Badge settings={visualSettings}>{visualSettings.heroBadge}</Badge>
+              <Badge settings={visualSettings} themeMode={themeMode}>
+                {visualSettings.heroBadge}
+              </Badge>
             </motion.div>
 
             <motion.h1
@@ -1190,7 +1268,8 @@ export default function HomePage({
 
             <motion.p
               variants={fadeUp}
-              className="mx-auto mt-5 max-w-xl text-base leading-7 text-slate-300 sm:mx-0 sm:mt-6 sm:text-lg sm:leading-8"
+              className="mx-auto mt-5 max-w-xl text-base leading-7 sm:mx-0 sm:mt-6 sm:text-lg sm:leading-8"
+              style={{ color: visualSettings.mutedTextColor }}
             >
               {visualSettings.heroText}
             </motion.p>
@@ -1203,7 +1282,7 @@ export default function HomePage({
                 href="#contact"
                 whileHover={{ scale: 1.04, y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className="group inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-center font-bold text-slate-950 shadow-lg transition sm:w-auto sm:px-7"
+                className="group inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-center font-bold shadow-lg transition sm:w-auto sm:px-7"
                 style={{
                   backgroundColor: visualSettings.primaryColor,
                   boxShadow: `0 18px 50px ${visualSettings.primaryColor}2e`,
@@ -1221,7 +1300,7 @@ export default function HomePage({
                 href="#services"
                 whileHover={{ scale: 1.04, y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className="inline-flex w-full items-center justify-center rounded-full border border-white/15 px-6 py-4 text-center font-semibold text-white transition hover:bg-white/10 sm:w-auto sm:px-7"
+                className="inline-flex w-full items-center justify-center rounded-full border px-6 py-4 text-center font-semibold transition hover:bg-white/10 sm:w-auto sm:px-7"
                 style={{
                   color: visualSettings.textColor,
                   borderColor: visualSettings.borderColor,
@@ -1236,7 +1315,10 @@ export default function HomePage({
                 variants={fadeUp}
                 className="mt-6 flex flex-col items-center gap-3 sm:items-start"
               >
-                <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-500">
+                <p
+                  className="text-xs font-bold uppercase tracking-[0.22em]"
+                  style={{ color: visualSettings.mutedTextColor }}
+                >
                   Connect with OBM
                 </p>
 
@@ -1252,7 +1334,8 @@ export default function HomePage({
               variants={staggerContainer}
               initial="hidden"
               animate="visible"
-              className="mt-9 grid grid-cols-1 gap-3 border-t border-white/10 pt-7 sm:mt-10 sm:grid-cols-3 sm:gap-4 sm:pt-8"
+              className="mt-9 grid grid-cols-1 gap-3 border-t pt-7 sm:mt-10 sm:grid-cols-3 sm:gap-4 sm:pt-8"
+              style={{ borderColor: visualSettings.borderColor }}
             >
               <StatCard
                 value="360°"
@@ -1276,7 +1359,10 @@ export default function HomePage({
           </motion.div>
 
           <div className="min-w-0">
-            <HeroDashboard settings={visualSettings} />
+            <HeroDashboard
+              settings={visualSettings}
+              themeMode={themeMode}
+            />
           </div>
         </div>
       </section>
@@ -1301,6 +1387,7 @@ export default function HomePage({
           >
             <SectionTitle
               settings={visualSettings}
+              themeMode={themeMode}
               eyebrow="What We Do"
               title="Product engineering, digital transformation, and enterprise automation"
               text="We act as a complete technology partner for businesses looking to modernize operations and scale digitally."
@@ -1326,6 +1413,7 @@ export default function HomePage({
                   service={service}
                   index={index}
                   settings={visualSettings}
+                  themeMode={themeMode}
                 />
               ))}
             </PillarCard>
@@ -1343,6 +1431,7 @@ export default function HomePage({
                   service={service}
                   index={index}
                   settings={visualSettings}
+                  themeMode={themeMode}
                 />
               ))}
             </PillarCard>
@@ -1352,7 +1441,13 @@ export default function HomePage({
 
       <section
         id="process"
-        className="relative overflow-hidden border-y border-white/10 bg-white/[0.03] px-4 py-16 sm:px-5 sm:py-20 lg:py-24"
+        className="relative overflow-hidden border-y px-4 py-16 sm:px-5 sm:py-20 lg:py-24"
+        style={{
+          borderColor: visualSettings.borderColor,
+          backgroundColor: isLightMode
+            ? "rgba(255,255,255,0.55)"
+            : "rgba(255,255,255,0.03)",
+        }}
       >
         <AnimatedGrid settings={visualSettings} />
 
@@ -1365,6 +1460,7 @@ export default function HomePage({
           >
             <SectionTitle
               settings={visualSettings}
+              themeMode={themeMode}
               eyebrow="Our Process"
               title="From idea to deployed business system"
               text="A structured delivery model for startups, SMEs, and enterprises that need clarity, speed, and production quality."
@@ -1410,7 +1506,10 @@ export default function HomePage({
               Digital systems for growing businesses
             </h2>
 
-            <p className="mt-5 leading-8 text-slate-300">
+            <p
+              className="mt-5 leading-8"
+              style={{ color: visualSettings.mutedTextColor }}
+            >
               OBM specializes in business systems where automation, dashboards,
               customer communication, secure portals, and scalable software
               create immediate operational value.
@@ -1423,13 +1522,24 @@ export default function HomePage({
               ].map(([label, Icon]) => (
                 <div
                   key={label}
-                  className="rounded-3xl border border-white/10 bg-white/[0.04] p-5"
+                  className="rounded-3xl border p-5"
+                  style={{
+                    borderColor: visualSettings.borderColor,
+                    backgroundColor: isLightMode
+                      ? visualSettings.surfaceColor
+                      : "rgba(255,255,255,0.04)",
+                  }}
                 >
                   <Icon
                     className="h-6 w-6"
                     style={{ color: visualSettings.iconColor }}
                   />
-                  <p className="mt-3 font-bold text-white">{label}</p>
+                  <p
+                    className="mt-3 font-bold"
+                    style={{ color: visualSettings.textColor }}
+                  >
+                    {label}
+                  </p>
                 </div>
               ))}
             </div>
@@ -1451,7 +1561,12 @@ export default function HomePage({
 
       <section
         id="pricing"
-        className="relative overflow-hidden bg-slate-900/60 px-4 py-16 sm:px-5 sm:py-20 lg:py-24"
+        className="relative overflow-hidden px-4 py-16 sm:px-5 sm:py-20 lg:py-24"
+        style={{
+          backgroundColor: isLightMode
+            ? "rgba(255,255,255,0.55)"
+            : "rgba(15,23,42,0.6)",
+        }}
       >
         <GlowOrb
           className="right-0 top-10 h-56 w-56 sm:h-72 sm:w-72"
@@ -1467,6 +1582,7 @@ export default function HomePage({
           >
             <SectionTitle
               settings={visualSettings}
+              themeMode={themeMode}
               eyebrow="Packages"
               title="Flexible development and automation plans"
               text="Start with a focused audit or move directly into a complete product build."
@@ -1495,7 +1611,15 @@ export default function HomePage({
         id="contact"
         className="relative px-4 py-16 sm:px-5 sm:py-20 lg:py-24"
       >
-        <div className="relative mx-auto grid max-w-7xl gap-8 overflow-hidden rounded-[1.5rem] border border-white/10 bg-gradient-to-br from-slate-900 to-slate-950 p-5 sm:rounded-[2rem] sm:p-6 md:grid-cols-2 md:p-10">
+        <div
+          className="relative mx-auto grid max-w-7xl gap-8 overflow-hidden rounded-[1.5rem] border p-5 sm:rounded-[2rem] sm:p-6 md:grid-cols-2 md:p-10"
+          style={{
+            borderColor: visualSettings.borderColor,
+            backgroundImage: isLightMode
+              ? `linear-gradient(135deg, ${visualSettings.surfaceColor}, ${visualSettings.backgroundColor})`
+              : "linear-gradient(135deg, #0f172a, #020617)",
+          }}
+        >
           <div
             className="absolute -left-24 -top-24 h-56 w-56 rounded-full blur-3xl sm:h-64 sm:w-64"
             style={{ backgroundColor: `${visualSettings.primaryColor}18` }}
@@ -1519,16 +1643,22 @@ export default function HomePage({
               Ready to modernize your business?
             </h2>
 
-            <p className="mt-5 leading-8 text-slate-300">
+            <p
+              className="mt-5 leading-8"
+              style={{ color: visualSettings.mutedTextColor }}
+            >
               Tell us about your business process, current software, and the
               systems you want to build or automate. OBM will recommend the best
               technical approach.
             </p>
 
-            <div className="mt-8 space-y-4 text-slate-300">
+            <div
+              className="mt-8 space-y-4"
+              style={{ color: visualSettings.mutedTextColor }}
+            >
               <a
                 href={`mailto:${visualSettings.email}`}
-                className="flex min-w-0 items-start gap-3 transition hover:text-white"
+                className="flex min-w-0 items-start gap-3 transition hover:opacity-80"
               >
                 <Mail
                   className="mt-0.5 h-5 w-5 shrink-0"
@@ -1541,7 +1671,7 @@ export default function HomePage({
 
               <a
                 href={`tel:${String(visualSettings.phone || "").replace(/\s+/g, "")}`}
-                className="flex min-w-0 items-start gap-3 transition hover:text-white"
+                className="flex min-w-0 items-start gap-3 transition hover:opacity-80"
               >
                 <Phone
                   className="mt-0.5 h-5 w-5 shrink-0"
@@ -1564,7 +1694,15 @@ export default function HomePage({
             </div>
 
             {activeSocialLinks.length > 0 && (
-              <div className="mt-8 rounded-3xl border border-white/10 bg-white/[0.035] p-5">
+              <div
+                className="mt-8 rounded-3xl border p-5"
+                style={{
+                  borderColor: visualSettings.borderColor,
+                  backgroundColor: isLightMode
+                    ? visualSettings.surfaceColor
+                    : "rgba(255,255,255,0.035)",
+                }}
+              >
                 <div className="mb-4 flex items-center gap-3">
                   <div
                     className="flex h-10 w-10 items-center justify-center rounded-2xl"
@@ -1577,8 +1715,16 @@ export default function HomePage({
                   </div>
 
                   <div>
-                    <p className="font-black text-white">Social Media</p>
-                    <p className="text-xs text-slate-500">
+                    <p
+                      className="font-black"
+                      style={{ color: visualSettings.textColor }}
+                    >
+                      Social Media
+                    </p>
+                    <p
+                      className="text-xs"
+                      style={{ color: visualSettings.mutedTextColor }}
+                    >
                       Follow and connect with OBM
                     </p>
                   </div>
@@ -1595,7 +1741,13 @@ export default function HomePage({
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, amount: 0.25 }}
-            className="relative min-w-0 rounded-3xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur sm:p-5 md:p-7"
+            className="relative min-w-0 rounded-3xl border p-4 backdrop-blur sm:p-5 md:p-7"
+            style={{
+              borderColor: visualSettings.borderColor,
+              backgroundColor: isLightMode
+                ? visualSettings.surfaceColor
+                : "rgba(255,255,255,0.04)",
+            }}
           >
             <div className="grid gap-4">
               <input
@@ -1603,8 +1755,13 @@ export default function HomePage({
                 onChange={(event) =>
                   updateContactForm("name", event.target.value)
                 }
-                className="w-full min-w-0 rounded-2xl border border-white/10 bg-slate-950 px-4 py-4 outline-none placeholder:text-slate-500 focus:ring-2"
-                style={{ "--tw-ring-color": visualSettings.primaryColor }}
+                className="w-full min-w-0 rounded-2xl border px-4 py-4 outline-none placeholder:text-slate-500 focus:ring-2"
+                style={{
+                  "--tw-ring-color": visualSettings.primaryColor,
+                  borderColor: visualSettings.borderColor,
+                  backgroundColor: visualSettings.surfaceColor,
+                  color: visualSettings.textColor,
+                }}
                 placeholder="Your Name"
                 required
               />
@@ -1615,8 +1772,13 @@ export default function HomePage({
                 onChange={(event) =>
                   updateContactForm("email", event.target.value)
                 }
-                className="w-full min-w-0 rounded-2xl border border-white/10 bg-slate-950 px-4 py-4 outline-none placeholder:text-slate-500 focus:ring-2"
-                style={{ "--tw-ring-color": visualSettings.primaryColor }}
+                className="w-full min-w-0 rounded-2xl border px-4 py-4 outline-none placeholder:text-slate-500 focus:ring-2"
+                style={{
+                  "--tw-ring-color": visualSettings.primaryColor,
+                  borderColor: visualSettings.borderColor,
+                  backgroundColor: visualSettings.surfaceColor,
+                  color: visualSettings.textColor,
+                }}
                 placeholder="Email Address"
                 required
               />
@@ -1626,8 +1788,13 @@ export default function HomePage({
                 onChange={(event) =>
                   updateContactForm("companyName", event.target.value)
                 }
-                className="w-full min-w-0 rounded-2xl border border-white/10 bg-slate-950 px-4 py-4 outline-none placeholder:text-slate-500 focus:ring-2"
-                style={{ "--tw-ring-color": visualSettings.primaryColor }}
+                className="w-full min-w-0 rounded-2xl border px-4 py-4 outline-none placeholder:text-slate-500 focus:ring-2"
+                style={{
+                  "--tw-ring-color": visualSettings.primaryColor,
+                  borderColor: visualSettings.borderColor,
+                  backgroundColor: visualSettings.surfaceColor,
+                  color: visualSettings.textColor,
+                }}
                 placeholder="Company Name"
               />
 
@@ -1636,8 +1803,13 @@ export default function HomePage({
                 onChange={(event) =>
                   updateContactForm("serviceType", event.target.value)
                 }
-                className="w-full min-w-0 rounded-2xl border border-white/10 bg-slate-950 px-4 py-4 outline-none focus:ring-2"
-                style={{ "--tw-ring-color": visualSettings.primaryColor }}
+                className="w-full min-w-0 rounded-2xl border px-4 py-4 outline-none focus:ring-2"
+                style={{
+                  "--tw-ring-color": visualSettings.primaryColor,
+                  borderColor: visualSettings.borderColor,
+                  backgroundColor: visualSettings.surfaceColor,
+                  color: visualSettings.textColor,
+                }}
               >
                 <option>Product Engineering</option>
                 <option>Digital Transformation</option>
@@ -1652,20 +1824,25 @@ export default function HomePage({
                 onChange={(event) =>
                   updateContactForm("message", event.target.value)
                 }
-                className="min-h-32 w-full min-w-0 resize-y rounded-2xl border border-white/10 bg-slate-950 px-4 py-4 outline-none placeholder:text-slate-500 focus:ring-2"
-                style={{ "--tw-ring-color": visualSettings.primaryColor }}
+                className="min-h-32 w-full min-w-0 resize-y rounded-2xl border px-4 py-4 outline-none placeholder:text-slate-500 focus:ring-2"
+                style={{
+                  "--tw-ring-color": visualSettings.primaryColor,
+                  borderColor: visualSettings.borderColor,
+                  backgroundColor: visualSettings.surfaceColor,
+                  color: visualSettings.textColor,
+                }}
                 placeholder="Tell us about your project"
                 required
               />
 
               {contactSuccess && (
-                <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm font-semibold text-emerald-300">
+                <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm font-semibold text-emerald-500">
                   {contactSuccess}
                 </div>
               )}
 
               {contactError && (
-                <div className="rounded-2xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm font-semibold text-red-200">
+                <div className="rounded-2xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm font-semibold text-red-500">
                   {contactError}
                 </div>
               )}
@@ -1678,7 +1855,7 @@ export default function HomePage({
                   y: contactSubmitting ? 0 : -2,
                 }}
                 whileTap={{ scale: contactSubmitting ? 1 : 0.98 }}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-center font-black text-slate-950 transition disabled:cursor-not-allowed disabled:opacity-60 sm:px-7"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-center font-black transition disabled:cursor-not-allowed disabled:opacity-60 sm:px-7"
                 style={{
                   backgroundColor: visualSettings.primaryColor,
                   color: visualSettings.solidButtonTextColor,
@@ -1695,8 +1872,14 @@ export default function HomePage({
         </div>
       </section>
 
-      <footer className="border-t border-white/10 px-4 py-8 sm:px-5">
-        <div className="mx-auto grid max-w-7xl gap-6 text-center text-sm text-slate-400 md:grid-cols-[1fr_auto_1fr] md:items-center md:text-left">
+      <footer
+        className="border-t px-4 py-8 sm:px-5"
+        style={{ borderColor: visualSettings.borderColor }}
+      >
+        <div
+          className="mx-auto grid max-w-7xl gap-6 text-center text-sm md:grid-cols-[1fr_auto_1fr] md:items-center md:text-left"
+          style={{ color: visualSettings.mutedTextColor }}
+        >
           <p className="break-words">
             © {new Date().getFullYear()} {visualSettings.siteName}. All rights
             reserved.
@@ -1708,9 +1891,11 @@ export default function HomePage({
             className="justify-center"
           />
 
-          <p className="break-words md:text-right">{visualSettings.footerText}</p>
+          <p className="break-words md:text-right">
+            {visualSettings.footerText}
+          </p>
         </div>
       </footer>
     </main>
   );
-} 
+}

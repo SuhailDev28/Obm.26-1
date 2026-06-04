@@ -1,3 +1,5 @@
+// client/src/config/siteData.js
+
 import {
   Bot,
   Brain,
@@ -12,22 +14,71 @@ export const TOKEN_KEY = "obm_admin_token";
 export const defaultSettings = {
   siteName: "OBM",
   tagline: "AI Consultancy & Software Development",
+
+  // Dark/default logo
   logo: "/uploads/obm-logo.png",
+
+  // Light mode logo
+  // Keep empty to fallback to logo
+  lightLogo: "",
+
+  // Admin dashboard theme
+  adminThemeMode: "dark",
+
+  // Dark / brand colors
   primaryColor: "#22d3ee",
   secondaryColor: "#2563eb",
   accentColor: "#a855f7",
+
+  // Public website light mode colors
+  lightPrimaryColor: "#2563eb",
+  lightSecondaryColor: "#7c3aed",
+  lightAccentColor: "#0891b2",
+  lightBackgroundColor: "#f8fafc",
+  lightSurfaceColor: "#ffffff",
+  lightTextColor: "#0f172a",
+  lightMutedTextColor: "#475569",
+  lightIconColor: "#1d4ed8",
+  lightBorderColor: "#e2e8f0",
+
   heroBadge: "Complete technology partner for startups and enterprises",
   heroTitle: "Build smarter digital products with AI, software, and automation.",
   heroText:
     "OBM helps businesses design, build, automate, and scale high-performance digital products, enterprise systems, web platforms, mobile apps, CRM, HRMS, CMS, e-commerce, and AI-enabled workflows.",
+
   ctaPrimary: "Start Your Project",
   ctaSecondary: "Explore Services",
+
   email: "hello@obm.qa",
   phone: "+974 0000 0000",
   location: "Doha, Qatar",
+  websiteUrl: "https://obm.qa",
+
   whatsapp: "+97400000000",
+  facebook: "",
+  instagram: "",
   linkedin: "https://www.linkedin.com/company/obm",
+  xTwitter: "",
+  youtube: "",
+  tiktok: "",
+  threads: "",
+  snapchat: "",
+  pinterest: "",
+  telegram: "",
+  googleBusiness: "",
+
   footerText: "AI Consultancy • Product Engineering • Enterprise Automation",
+
+  contactEmailEnabled: true,
+  contactRecipientEmail: "hello@obm.qa",
+  contactEmailSubjectPrefix: "New OBM Website Inquiry",
+
+  smtpEnabled: false,
+  smtpHost: "",
+  smtpPort: "587",
+  smtpUser: "",
+  smtpPass: "",
+  smtpFrom: "",
 };
 
 export const productServices = [
@@ -91,19 +142,36 @@ export const packages = [
     name: "Digital Starter",
     price: "From QAR 4,500",
     desc: "Best for businesses planning software, website, or automation modernization.",
-    features: ["Digital audit", "Workflow analysis", "Technical roadmap", "Prototype recommendation"],
+    features: [
+      "Digital audit",
+      "Workflow analysis",
+      "Technical roadmap",
+      "Prototype recommendation",
+    ],
   },
   {
     name: "Product Build",
     price: "From QAR 25,000",
     desc: "Best for MVPs, web apps, portals, dashboards, CRM, CMS, and e-commerce systems.",
-    features: ["UI/UX design", "Full-stack development", "Admin dashboard", "Cloud deployment", "Basic automation"],
+    features: [
+      "UI/UX design",
+      "Full-stack development",
+      "Admin dashboard",
+      "Cloud deployment",
+      "Basic automation",
+    ],
     featured: true,
   },
   {
     name: "Enterprise Automation",
     price: "Custom Quote",
     desc: "Best for HRMS, CRM, AI assistants, advanced workflows, and multi-department systems.",
-    features: ["Custom architecture", "Private data integrations", "Role-based access", "Advanced analytics", "Priority support"],
+    features: [
+      "Custom architecture",
+      "Private data integrations",
+      "Role-based access",
+      "Advanced analytics",
+      "Priority support",
+    ],
   },
 ];

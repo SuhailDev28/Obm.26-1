@@ -1,25 +1,65 @@
-import React from "react";
+// client/src/components/LogoMark.jsx
+
+import React, { useEffect, useMemo, useState } from "react";
 import { mediaUrl } from "../lib/api.js";
 
-export default function LogoMark({ settings, size = "md", variant = "default" }) {
+export default function LogoMark({
+  settings = {},
+  size = "md",
+  variant = "default",
+  themeMode = "dark",
+  logoField = "",
+}) {
+  const [imageFailed, setImageFailed] = useState(false);
+
+  const isLight = themeMode === "light";
+
+  const selectedLogo = useMemo(() => {
+    if (logoField && settings?.[logoField]) {
+      return settings[logoField];
+    }
+
+    if (isLight && settings?.lightLogo) {
+      return settings.lightLogo;
+    }
+
+    return settings?.logo || "";
+  }, [settings, logoField, isLight]);
+
+  const logoUrl = mediaUrl(selectedLogo);
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [logoUrl]);
+
   const imgClass =
     size === "lg"
       ? "h-20 w-auto max-w-[240px]"
       : variant === "navbar"
         ? "h-11 w-auto max-w-[150px]"
-        : "h-12 w-auto max-w-[160px]";
+        : size === "sm"
+          ? "h-9 w-auto max-w-[120px]"
+          : "h-12 w-auto max-w-[160px]";
 
   const fallbackClass =
     size === "lg"
       ? "h-16 min-w-28 px-5 text-2xl"
-      : "h-11 min-w-20 px-4 text-lg";
+      : size === "sm"
+        ? "h-9 min-w-16 px-3 text-base"
+        : "h-11 min-w-20 px-4 text-lg";
 
-  if (settings.logo) {
+  const siteName = settings?.siteName || "OBM";
+  const primaryColor = settings?.primaryColor || "#22d3ee";
+  const secondaryColor = settings?.secondaryColor || "#2563eb";
+
+  if (logoUrl && !imageFailed) {
     return (
       <img
-        src={mediaUrl(settings.logo)}
-        alt={`${settings.siteName} logo`}
+        src={logoUrl}
+        alt={`${siteName} logo`}
         className={`${imgClass} object-contain`}
+        loading="eager"
+        onError={() => setImageFailed(true)}
       />
     );
   }
@@ -28,11 +68,13 @@ export default function LogoMark({ settings, size = "md", variant = "default" })
     <div
       className={`${fallbackClass} flex items-center justify-center rounded-2xl shadow-lg`}
       style={{
-        background: `linear-gradient(135deg, ${settings.primaryColor}, ${settings.secondaryColor})`,
-        boxShadow: `0 18px 40px ${settings.primaryColor}33`,
+        background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
+        boxShadow: `0 18px 40px ${primaryColor}33`,
       }}
     >
-      <span className="font-black text-white">OBM</span>
+      <span className="font-black text-white">
+        {String(siteName || "OBM").slice(0, 3).toUpperCase()}
+      </span>
     </div>
   );
 }

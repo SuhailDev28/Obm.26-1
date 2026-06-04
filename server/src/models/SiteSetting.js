@@ -5,11 +5,15 @@ export const defaultSettings = {
   siteName: "OBM",
   tagline: "AI Consultancy & Software Development",
 
+  // Dark mode / default logo.
   // Make sure this file exists inside backend /uploads folder.
-  // If your actual file name is "ogo-1780319743876.png", keep it as below.
   logo: "/uploads/ogo-1780319743876.png",
 
-  // Admin dashboard theme mode
+  // Light mode logo.
+  // Keep empty to fallback to the default logo.
+  lightLogo: "",
+
+  // Admin dashboard theme mode.
   adminThemeMode: "dark",
 
   primaryColor: "#22d3ee",
@@ -91,6 +95,12 @@ const siteSettingSchema = new mongoose.Schema(
     logo: {
       type: String,
       default: defaultSettings.logo,
+      trim: true,
+    },
+
+    lightLogo: {
+      type: String,
+      default: defaultSettings.lightLogo,
       trim: true,
     },
 

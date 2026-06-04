@@ -1,3 +1,5 @@
+// client/src/pages/AdminDashboard.jsx
+
 import React, { useEffect, useMemo, useState } from "react";
 import {
   CheckCircle2,
@@ -10,6 +12,7 @@ import {
   LogOut,
   Mail,
   MapPin,
+  Moon,
   Palette,
   Phone,
   RefreshCw,
@@ -18,6 +21,7 @@ import {
   Settings,
   Share2,
   ShieldCheck,
+  Sun,
   Upload,
 } from "lucide-react";
 import {
@@ -75,6 +79,87 @@ function resolveAssetUrl(path) {
   return `${apiOrigin}/${value}`;
 }
 
+function getInitialAdminThemeMode(settings = {}) {
+  const savedMode = String(settings.adminThemeMode || "").toLowerCase();
+
+  if (savedMode === "light" || savedMode === "dark") {
+    return savedMode;
+  }
+
+  if (typeof document !== "undefined") {
+    const html = document.documentElement;
+
+    if (
+      html.classList.contains("light") ||
+      html.classList.contains("obm-light") ||
+      html.dataset.theme === "light"
+    ) {
+      return "light";
+    }
+
+    if (
+      html.classList.contains("dark") ||
+      html.classList.contains("obm-dark") ||
+      html.dataset.theme === "dark"
+    ) {
+      return "dark";
+    }
+  }
+
+  return "dark";
+}
+
+function hexToRgba(hex, opacity = 1) {
+  const value = String(hex || "#22d3ee").replace("#", "");
+
+  if (!/^[0-9a-fA-F]{6}$/.test(value)) {
+    return `rgba(34, 211, 238, ${opacity})`;
+  }
+
+  const r = parseInt(value.slice(0, 2), 16);
+  const g = parseInt(value.slice(2, 4), 16);
+  const b = parseInt(value.slice(4, 6), 16);
+
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+}
+
+function getAdminTheme(isLight) {
+  return {
+    page: isLight ? "bg-slate-50 text-slate-950" : "bg-slate-950 text-white",
+    header: isLight
+      ? "border-slate-200 bg-white/90"
+      : "border-white/10 bg-slate-950/85",
+    panel: isLight
+      ? "border-slate-200 bg-white/85 shadow-slate-200/70"
+      : "border-white/10 bg-white/[0.055] shadow-black/20",
+    solidPanel: isLight
+      ? "border-slate-200 bg-white shadow-slate-200/70"
+      : "border-white/10 bg-slate-950/70 shadow-black/20",
+    innerPanel: isLight
+      ? "border-slate-200 bg-slate-50"
+      : "border-white/10 bg-slate-950/70",
+    softPanel: isLight
+      ? "border-slate-200 bg-slate-100"
+      : "border-white/10 bg-white/[0.04]",
+    text: isLight ? "text-slate-950" : "text-white",
+    muted: isLight ? "text-slate-600" : "text-slate-400",
+    faint: isLight ? "text-slate-500" : "text-slate-500",
+    border: isLight ? "border-slate-200" : "border-white/10",
+    input: isLight
+      ? "border-slate-200 bg-white text-slate-950 placeholder:text-slate-400 focus:bg-white"
+      : "border-white/10 bg-white/[0.04] text-white placeholder:text-slate-600 focus:bg-white/[0.07]",
+    navItem: isLight
+      ? "text-slate-600 hover:border-slate-200 hover:bg-slate-100 hover:text-slate-950"
+      : "text-slate-300 hover:border-white/10 hover:bg-white/[0.06] hover:text-white",
+    secondaryButton: isLight
+      ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
+      : "border-white/10 bg-white/[0.04] text-white hover:bg-white/10",
+    dangerButton: isLight
+      ? "border-red-200 bg-red-50 text-red-600 hover:bg-red-100"
+      : "border-red-400/20 bg-red-400/10 text-red-200 hover:bg-red-400/20",
+  };
+}
+
 export default function AdminDashboard({
   settings,
   setSettings,
@@ -86,14 +171,38 @@ export default function AdminDashboard({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  const [adminThemeMode, setAdminThemeMode] = useState(() =>
+    getInitialAdminThemeMode(settings || {}),
+  );
+
+  const isLight = adminThemeMode === "light";
+  const ui = getAdminTheme(isLight);
+
   useEffect(() => {
     setDraft(settings || {});
+    setAdminThemeMode(getInitialAdminThemeMode(settings || {}));
   }, [settings]);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("obm-admin-light", isLight);
+    document.documentElement.classList.toggle("obm-admin-dark", !isLight);
+  }, [isLight]);
 
   const update = (key, value) => {
     setDraft((current) => ({
       ...current,
       [key]: value,
+    }));
+    setSaved(false);
+  };
+
+  const toggleAdminTheme = () => {
+    const nextMode = isLight ? "dark" : "light";
+
+    setAdminThemeMode(nextMode);
+    setDraft((current) => ({
+      ...current,
+      adminThemeMode: nextMode,
     }));
     setSaved(false);
   };
@@ -129,10 +238,16 @@ export default function AdminDashboard({
       setSaving(true);
       setError("");
 
-      const nextSettings = await saveSettingsToApi(draft);
+      const payload = {
+        ...draft,
+        adminThemeMode,
+      };
+
+      const nextSettings = await saveSettingsToApi(payload);
 
       setSettings(nextSettings);
       setDraft(nextSettings);
+      setAdminThemeMode(getInitialAdminThemeMode(nextSettings));
       showSaved();
     } catch (err) {
       setError(err?.message || "Settings save failed");
@@ -150,6 +265,7 @@ export default function AdminDashboard({
 
       setDraft(nextSettings);
       setSettings(nextSettings);
+      setAdminThemeMode(getInitialAdminThemeMode(nextSettings));
       showSaved();
     } catch (err) {
       setError(err?.message || "Reset failed");
@@ -174,14 +290,20 @@ export default function AdminDashboard({
 
   const heroPreviewStyle = useMemo(
     () => ({
-      background: `
-        radial-gradient(circle at top left, ${primaryColor}45, transparent 32%),
-        radial-gradient(circle at bottom right, ${secondaryColor}45, transparent 35%),
-        linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.98))
-      `,
-      boxShadow: `0 28px 90px ${primaryColor}22`,
+      background: isLight
+        ? `
+          radial-gradient(circle at top left, ${primaryColor}18, transparent 32%),
+          radial-gradient(circle at bottom right, ${secondaryColor}14, transparent 35%),
+          linear-gradient(135deg, #ffffff, #f8fafc)
+        `
+        : `
+          radial-gradient(circle at top left, ${primaryColor}45, transparent 32%),
+          radial-gradient(circle at bottom right, ${secondaryColor}45, transparent 35%),
+          linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.98))
+        `,
+      boxShadow: `0 28px 90px ${primaryColor}${isLight ? "14" : "22"}`,
     }),
-    [primaryColor, secondaryColor],
+    [primaryColor, secondaryColor, isLight],
   );
 
   const gradientButtonStyle = useMemo(
@@ -252,7 +374,7 @@ export default function AdminDashboard({
       label: "X / Twitter URL",
       placeholder: "https://x.com/yourprofile",
       icon: FaXTwitter,
-      brandColor: "#FFFFFF",
+      brandColor: isLight ? "#111827" : "#FFFFFF",
     },
     {
       key: "youtube",
@@ -266,21 +388,21 @@ export default function AdminDashboard({
       label: "TikTok URL",
       placeholder: "https://tiktok.com/@yourprofile",
       icon: FaTiktok,
-      brandColor: "#FFFFFF",
+      brandColor: isLight ? "#111827" : "#FFFFFF",
     },
     {
       key: "threads",
       label: "Threads URL",
       placeholder: "https://threads.net/@yourprofile",
       icon: FaThreads,
-      brandColor: "#FFFFFF",
+      brandColor: isLight ? "#111827" : "#FFFFFF",
     },
     {
       key: "snapchat",
       label: "Snapchat URL",
       placeholder: "https://snapchat.com/add/yourprofile",
       icon: FaSnapchatGhost,
-      brandColor: "#FFFC00",
+      brandColor: isLight ? "#ca8a04" : "#FFFC00",
     },
     {
       key: "pinterest",
@@ -317,28 +439,30 @@ export default function AdminDashboard({
   );
 
   return (
-    <main className="min-h-screen overflow-hidden bg-slate-950 text-white">
+    <main className={`min-h-screen overflow-hidden ${ui.page}`}>
       <div className="pointer-events-none fixed inset-0 opacity-70">
         <div
           className="absolute -left-32 top-10 h-80 w-80 rounded-full blur-3xl"
-          style={{ backgroundColor: `${primaryColor}25` }}
+          style={{ backgroundColor: hexToRgba(primaryColor, isLight ? 0.13 : 0.15) }}
         />
 
         <div
           className="absolute -right-32 top-80 h-96 w-96 rounded-full blur-3xl"
-          style={{ backgroundColor: `${secondaryColor}22` }}
+          style={{
+            backgroundColor: hexToRgba(secondaryColor, isLight ? 0.1 : 0.13),
+          }}
         />
 
         <div
           className="absolute bottom-0 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full blur-3xl"
-          style={{ backgroundColor: `${accentColor}18` }}
+          style={{ backgroundColor: hexToRgba(accentColor, isLight ? 0.08 : 0.1) }}
         />
       </div>
 
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/85 backdrop-blur-2xl">
+      <header className={`sticky top-0 z-50 border-b backdrop-blur-2xl ${ui.header}`}>
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex min-w-0 items-center gap-4">
-            <AdminLogoBox settings={draft} />
+            <AdminLogoBox settings={draft} isLight={isLight} />
 
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
@@ -354,7 +478,7 @@ export default function AdminDashboard({
                 </span>
               </div>
 
-              <p className="mt-1 truncate text-xs text-slate-400 sm:text-sm">
+              <p className={`mt-1 truncate text-xs sm:text-sm ${ui.muted}`}>
                 Manage logo, colors, website content, contact and SMTP settings.
               </p>
             </div>
@@ -363,8 +487,17 @@ export default function AdminDashboard({
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <button
               type="button"
+              onClick={toggleAdminTheme}
+              className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-bold transition hover:-translate-y-0.5 ${ui.secondaryButton}`}
+            >
+              {isLight ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+              {isLight ? "Dark Mode" : "Light Mode"}
+            </button>
+
+            <button
+              type="button"
               onClick={() => navigate("/")}
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-white/10"
+              className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-bold transition hover:-translate-y-0.5 ${ui.secondaryButton}`}
             >
               <Home className="h-4 w-4" />
               Website
@@ -373,7 +506,7 @@ export default function AdminDashboard({
             <button
               type="button"
               onClick={onLogout}
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-white/10"
+              className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-bold transition hover:-translate-y-0.5 ${ui.secondaryButton}`}
             >
               <LogOut className="h-4 w-4" />
               Logout
@@ -394,30 +527,52 @@ export default function AdminDashboard({
       </header>
 
       <section className="relative z-10 mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[320px_1fr] lg:py-8">
-        <aside className="h-fit rounded-[2rem] border border-white/10 bg-white/[0.055] p-4 shadow-2xl shadow-black/20 backdrop-blur-2xl lg:sticky lg:top-24">
-          <div className="overflow-hidden rounded-[1.75rem] border border-white/10">
+        <aside
+          className={`h-fit rounded-[2rem] border p-4 shadow-2xl backdrop-blur-2xl lg:sticky lg:top-24 ${ui.panel}`}
+        >
+          <div className={`overflow-hidden rounded-[1.75rem] border ${ui.border}`}>
             <div className="p-5" style={heroPreviewStyle}>
               <div className="flex items-center justify-between gap-3">
-                <AdminLogoBox settings={draft} size="lg" />
+                <AdminLogoBox settings={draft} size="lg" isLight={isLight} />
 
-                <div className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold text-white/90 backdrop-blur">
-                  
+                <div
+                  className={`rounded-full border px-3 py-1 text-xs font-bold backdrop-blur ${
+                    isLight
+                      ? "border-slate-200 bg-white/80 text-slate-700"
+                      : "border-white/15 bg-white/10 text-white/90"
+                  }`}
+                >
+                  {isLight ? "Light" : "Dark"}
                 </div>
               </div>
 
-              <p className="mt-5 line-clamp-2 text-2xl font-black text-white">
+              <p
+                className={`mt-5 line-clamp-2 text-2xl font-black ${
+                  isLight ? "text-slate-950" : "text-white"
+                }`}
+              >
                 {draft.siteName || "OBM"}
               </p>
 
-              <p className="mt-2 line-clamp-2 text-sm leading-6 text-white/75">
+              <p
+                className={`mt-2 line-clamp-2 text-sm leading-6 ${
+                  isLight ? "text-slate-600" : "text-white/75"
+                }`}
+              >
                 {draft.tagline || "AI consultancy and digital solutions"}
               </p>
             </div>
 
-            <div className="grid grid-cols-3 border-t border-white/10 bg-slate-950/80">
-              <ColorDot label="Primary" value={primaryColor} />
-              <ColorDot label="Secondary" value={secondaryColor} />
-              <ColorDot label="Accent" value={accentColor} />
+            <div
+              className={`grid grid-cols-3 border-t ${
+                isLight
+                  ? "border-slate-200 bg-slate-50"
+                  : "border-white/10 bg-slate-950/80"
+              }`}
+            >
+              <ColorDot label="Primary" value={primaryColor} isLight={isLight} />
+              <ColorDot label="Secondary" value={secondaryColor} isLight={isLight} />
+              <ColorDot label="Accent" value={accentColor} isLight={isLight} />
             </div>
           </div>
 
@@ -426,10 +581,10 @@ export default function AdminDashboard({
               <a
                 key={label}
                 href={href}
-                className="group flex items-center gap-3 rounded-3xl border border-transparent px-4 py-3 text-slate-300 transition hover:border-white/10 hover:bg-white/[0.06] hover:text-white"
+                className={`group flex items-center gap-3 rounded-3xl border border-transparent px-4 py-3 transition ${ui.navItem}`}
               >
                 <span
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] transition group-hover:scale-105"
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border transition group-hover:scale-105 ${ui.softPanel}`}
                   style={{ color: primaryColor }}
                 >
                   <Icon className="h-4 w-4" />
@@ -439,7 +594,7 @@ export default function AdminDashboard({
                   <span className="block truncate text-sm font-black">
                     {label}
                   </span>
-                  <span className="block truncate text-xs text-slate-500">
+                  <span className={`block truncate text-xs ${ui.faint}`}>
                     {description}
                   </span>
                 </span>
@@ -451,7 +606,7 @@ export default function AdminDashboard({
             type="button"
             onClick={handleReset}
             disabled={saving}
-            className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-3xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm font-black text-red-200 transition hover:bg-red-400/20 disabled:cursor-not-allowed disabled:opacity-60"
+            className={`mt-5 inline-flex w-full items-center justify-center gap-2 rounded-3xl border px-4 py-3 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-60 ${ui.dangerButton}`}
           >
             <RefreshCw className="h-4 w-4" />
             Reset Defaults
@@ -462,14 +617,24 @@ export default function AdminDashboard({
               type="success"
               icon={CheckCircle2}
               text="Settings saved successfully."
+              isLight={isLight}
             />
           )}
 
-          {error && <AlertBox type="error" icon={ShieldCheck} text={error} />}
+          {error && (
+            <AlertBox
+              type="error"
+              icon={ShieldCheck}
+              text={error}
+              isLight={isLight}
+            />
+          )}
         </aside>
 
         <div className="space-y-6">
-          <section className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.055] shadow-2xl shadow-black/20 backdrop-blur-2xl">
+          <section
+            className={`overflow-hidden rounded-[2rem] border shadow-2xl backdrop-blur-2xl ${ui.panel}`}
+          >
             <div className="grid gap-6 p-6 md:grid-cols-[1fr_300px] md:p-8">
               <div>
                 <p
@@ -483,25 +648,25 @@ export default function AdminDashboard({
                   Manage your complete OBM landing page from one place.
                 </h1>
 
-                <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-400 sm:text-base">
+                <p className={`mt-3 max-w-2xl text-sm leading-7 sm:text-base ${ui.muted}`}>
                   Update branding, logo, hero copy, contact information, email
                   notifications, SMTP configuration and social media links
                   without editing code.
                 </p>
               </div>
 
-              <div className="rounded-[1.75rem] border border-white/10 bg-slate-950/70 p-5">
+              <div className={`rounded-[1.75rem] border p-5 ${ui.innerPanel}`}>
                 <div className="flex items-center gap-3">
                   <div
                     className="flex h-12 w-12 items-center justify-center rounded-2xl"
-                    style={{ backgroundColor: `${primaryColor}22` }}
+                    style={{ backgroundColor: hexToRgba(primaryColor, 0.14) }}
                   >
                     <Eye className="h-5 w-5" style={{ color: primaryColor }} />
                   </div>
 
                   <div>
                     <p className="font-black">Preview Ready</p>
-                    <p className="text-xs text-slate-400">
+                    <p className={`text-xs ${ui.muted}`}>
                       Save first, then check public website.
                     </p>
                   </div>
@@ -510,7 +675,7 @@ export default function AdminDashboard({
                 <button
                   type="button"
                   onClick={() => navigate("/")}
-                  className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-black transition hover:bg-white/10"
+                  className={`mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-black transition ${ui.secondaryButton}`}
                 >
                   <Home className="h-4 w-4" />
                   View Website
@@ -525,6 +690,7 @@ export default function AdminDashboard({
             color={primaryColor}
             title="Brand Settings"
             text="Control company name, tagline and footer text."
+            isLight={isLight}
           >
             <div className="grid gap-5 md:grid-cols-2">
               <Field
@@ -553,8 +719,9 @@ export default function AdminDashboard({
             id="colors"
             icon={Palette}
             color={primaryColor}
-            title="Color Control"
-            text="Change primary, secondary and accent colors used across the website."
+            title="Dark Mode Color Control"
+            text="Change primary, secondary and accent colors used across the dark website theme."
+            isLight={isLight}
           >
             <div className="grid gap-5 md:grid-cols-3">
               <ColorField
@@ -583,6 +750,7 @@ export default function AdminDashboard({
             color={lightIconColor}
             title="Light Mode Color Settings"
             text="Control the public website light theme colors separately from the dark theme."
+            isLight={isLight}
           >
             <div className="grid gap-6">
               <div
@@ -610,8 +778,7 @@ export default function AdminDashboard({
                       style={{ color: lightMutedTextColor }}
                     >
                       These colors are used when visitors switch the public
-                      website to light mode. Use a strong icon/contrast color if
-                      your main brand color is very bright.
+                      website to light mode.
                     </p>
                   </div>
 
@@ -714,11 +881,15 @@ export default function AdminDashboard({
                 />
               </div>
 
-              <div className="rounded-[1.5rem] border border-cyan-400/20 bg-cyan-400/10 p-5 text-sm leading-6 text-cyan-100">
+              <div
+                className={`rounded-[1.5rem] border p-5 text-sm leading-6 ${
+                  isLight
+                    ? "border-cyan-200 bg-cyan-50 text-cyan-800"
+                    : "border-cyan-400/20 bg-cyan-400/10 text-cyan-100"
+                }`}
+              >
                 Recommended for light mode: keep background near white, text
-                dark, and icon/contrast color dark enough to be visible. This
-                prevents yellow or very bright brand colors from disappearing on
-                white sections.
+                dark, and icon/contrast color dark enough to be visible.
               </div>
             </div>
           </DashboardCard>
@@ -729,19 +900,26 @@ export default function AdminDashboard({
             color={primaryColor}
             title="Logo Update"
             text="Upload a logo and instantly apply it to the public website header and footer."
+            isLight={isLight}
           >
             <div className="grid gap-6 md:grid-cols-[1fr_280px] md:items-stretch">
-              <label className="group flex min-h-56 cursor-pointer flex-col items-center justify-center rounded-[1.75rem] border border-dashed border-white/20 bg-slate-950/70 p-8 text-center transition hover:border-white/30 hover:bg-white/[0.04]">
+              <label
+                className={`group flex min-h-56 cursor-pointer flex-col items-center justify-center rounded-[1.75rem] border border-dashed p-8 text-center transition ${
+                  isLight
+                    ? "border-slate-300 bg-slate-50 hover:border-slate-400 hover:bg-slate-100"
+                    : "border-white/20 bg-slate-950/70 hover:border-white/30 hover:bg-white/[0.04]"
+                }`}
+              >
                 <span
                   className="mb-5 flex h-16 w-16 items-center justify-center rounded-3xl transition group-hover:scale-105"
-                  style={{ backgroundColor: `${primaryColor}20` }}
+                  style={{ backgroundColor: hexToRgba(primaryColor, 0.14) }}
                 >
                   <Upload className="h-8 w-8" style={{ color: primaryColor }} />
                 </span>
 
                 <span className="text-xl font-black">Upload Logo</span>
 
-                <span className="mt-2 max-w-sm text-sm leading-6 text-slate-400">
+                <span className={`mt-2 max-w-sm text-sm leading-6 ${ui.muted}`}>
                   PNG, JPG, SVG or WebP recommended. The uploaded logo will be
                   used across the public website.
                 </span>
@@ -754,21 +932,25 @@ export default function AdminDashboard({
                 />
               </label>
 
-              <div className="flex flex-col justify-between rounded-[1.75rem] border border-white/10 bg-slate-950/70 p-5 text-center">
+              <div
+                className={`flex flex-col justify-between rounded-[1.75rem] border p-5 text-center ${ui.innerPanel}`}
+              >
                 <div>
-                  <p className="mb-4 text-left text-sm font-black text-slate-300">
+                  <p className={`mb-4 text-left text-sm font-black ${ui.muted}`}>
                     Current Logo
                   </p>
 
-                  <div className="flex min-h-32 w-full items-center justify-center rounded-3xl border border-white/10 bg-slate-950/70 p-5">
-                    <AdminLogoBox settings={draft} size="preview" />
+                  <div
+                    className={`flex min-h-32 w-full items-center justify-center rounded-3xl border p-5 ${ui.innerPanel}`}
+                  >
+                    <AdminLogoBox settings={draft} size="preview" isLight={isLight} />
                   </div>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => update("logo", "")}
-                  className="mt-5 rounded-2xl border border-white/10 px-4 py-3 text-sm font-black text-slate-300 transition hover:bg-white/10 hover:text-white"
+                  className={`mt-5 rounded-2xl border px-4 py-3 text-sm font-black transition ${ui.secondaryButton}`}
                 >
                   Remove Logo
                 </button>
@@ -782,6 +964,7 @@ export default function AdminDashboard({
             color={primaryColor}
             title="Hero Content"
             text="Edit headline, paragraph and call-to-action button text."
+            isLight={isLight}
           >
             <div className="grid gap-5">
               <Field
@@ -826,6 +1009,7 @@ export default function AdminDashboard({
             color={primaryColor}
             title="Contact Details"
             text="Update business contact information displayed on the website."
+            isLight={isLight}
           >
             <div className="grid gap-5 md:grid-cols-2">
               <Field
@@ -861,6 +1045,7 @@ export default function AdminDashboard({
             color={primaryColor}
             title="Social Media Integration"
             text="Add all social media links used on the website header, footer and contact sections."
+            isLight={isLight}
           >
             <div className="grid gap-5 md:grid-cols-2">
               {socialItems.map(
@@ -874,16 +1059,17 @@ export default function AdminDashboard({
                     value={draft[key] || ""}
                     placeholder={placeholder}
                     onChange={(value) => update(key, value)}
+                    isLight={isLight}
                   />
                 ),
               )}
             </div>
 
-            <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-slate-950/70 p-5">
+            <div className={`mt-6 rounded-[1.5rem] border p-5 ${ui.innerPanel}`}>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="font-black text-white">Active Social Links</p>
-                  <p className="mt-1 text-sm text-slate-400">
+                  <p className="font-black">Active Social Links</p>
+                  <p className={`mt-1 text-sm ${ui.muted}`}>
                     These links will be available for frontend social icons.
                   </p>
                 </div>
@@ -904,10 +1090,12 @@ export default function AdminDashboard({
                       href={resolveSocialUrl(draft[key], key)}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-bold text-slate-200 transition hover:-translate-y-0.5 hover:bg-white/10"
+                      className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold transition hover:-translate-y-0.5 ${ui.secondaryButton}`}
                     >
                       <span
-                        className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10"
+                        className={`flex h-6 w-6 items-center justify-center rounded-full ${
+                          isLight ? "bg-slate-100" : "bg-white/10"
+                        }`}
                         style={{ color: brandColor }}
                       >
                         <Icon className="h-3.5 w-3.5" />
@@ -917,7 +1105,7 @@ export default function AdminDashboard({
                     </a>
                   ))
                 ) : (
-                  <p className="text-sm text-slate-500">
+                  <p className={`text-sm ${ui.faint}`}>
                     No social links added yet.
                   </p>
                 )}
@@ -931,6 +1119,7 @@ export default function AdminDashboard({
             color={primaryColor}
             title="Contact Email Notifications"
             text="Control whether contact form inquiries are sent to email."
+            isLight={isLight}
           >
             <div className="grid gap-5">
               <TogglePanel
@@ -939,6 +1128,7 @@ export default function AdminDashboard({
                 checked={Boolean(draft.contactEmailEnabled)}
                 onChange={(checked) => update("contactEmailEnabled", checked)}
                 color={primaryColor}
+                isLight={isLight}
               />
 
               <div className="grid gap-5 md:grid-cols-2">
@@ -967,6 +1157,7 @@ export default function AdminDashboard({
             color={primaryColor}
             title="SMTP Settings"
             text="Configure SMTP server settings for sending website inquiry emails."
+            isLight={isLight}
           >
             <div className="grid gap-5">
               <TogglePanel
@@ -975,6 +1166,7 @@ export default function AdminDashboard({
                 checked={Boolean(draft.smtpEnabled)}
                 onChange={(checked) => update("smtpEnabled", checked)}
                 color={primaryColor}
+                isLight={isLight}
               />
 
               <div className="grid gap-5 md:grid-cols-2">
@@ -1018,18 +1210,26 @@ export default function AdminDashboard({
                 </div>
               </div>
 
-              <div className="rounded-[1.5rem] border border-amber-400/20 bg-amber-400/10 p-5 text-sm leading-6 text-amber-100">
+              <div
+                className={`rounded-[1.5rem] border p-5 text-sm leading-6 ${
+                  isLight
+                    ? "border-amber-200 bg-amber-50 text-amber-800"
+                    : "border-amber-400/20 bg-amber-400/10 text-amber-100"
+                }`}
+              >
                 For Gmail, use a Gmail App Password, not your normal Gmail
                 password. Do not expose SMTP password in the public settings API.
               </div>
             </div>
           </DashboardCard>
 
-          <section className="rounded-[2rem] border border-white/10 bg-slate-900/80 p-6 shadow-2xl shadow-black/20 backdrop-blur-2xl md:p-8">
+          <section
+            className={`rounded-[2rem] border p-6 shadow-2xl backdrop-blur-2xl md:p-8 ${ui.solidPanel}`}
+          >
             <div className="grid gap-6 md:grid-cols-[1fr_240px] md:items-center">
               <div>
                 <h2 className="text-2xl font-black">Ready to publish?</h2>
-                <p className="mt-2 text-sm leading-6 text-slate-400">
+                <p className={`mt-2 text-sm leading-6 ${ui.muted}`}>
                   Save all changes and open the public website to verify your
                   updated branding, content and social media links.
                 </p>
@@ -1053,7 +1253,7 @@ export default function AdminDashboard({
   );
 }
 
-function AdminLogoBox({ settings, size = "header" }) {
+function AdminLogoBox({ settings, size = "header", isLight = false }) {
   const [imageFailed, setImageFailed] = useState(false);
 
   const logoUrl = resolveAssetUrl(settings?.logo);
@@ -1073,7 +1273,11 @@ function AdminLogoBox({ settings, size = "header" }) {
     <div
       className={`flex shrink-0 items-center justify-center overflow-hidden ${boxClass}`}
     >
-      <div className="flex h-full w-full items-center justify-center">
+      <div
+        className={`flex h-full w-full items-center justify-center ${
+          isLight ? "bg-white/40" : "bg-transparent"
+        }`}
+      >
         {logoUrl && !imageFailed ? (
           <img
             src={logoUrl}
@@ -1091,24 +1295,34 @@ function AdminLogoBox({ settings, size = "header" }) {
   );
 }
 
-function DashboardCard({ id, icon: Icon, color, title, text, children }) {
+function DashboardCard({ id, icon: Icon, color, title, text, children, isLight }) {
   return (
     <section
       id={id}
-      className="rounded-[2rem] border border-white/10 bg-white/[0.055] p-5 shadow-2xl shadow-black/20 backdrop-blur-2xl sm:p-6 md:p-8"
+      className={`rounded-[2rem] border p-5 shadow-2xl backdrop-blur-2xl sm:p-6 md:p-8 ${
+        isLight
+          ? "border-slate-200 bg-white/85 shadow-slate-200/70"
+          : "border-white/10 bg-white/[0.055] shadow-black/20"
+      }`}
     >
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-start gap-4">
           <div
             className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl"
-            style={{ backgroundColor: `${color}20`, color }}
+            style={{ backgroundColor: hexToRgba(color, 0.14), color }}
           >
             <Icon className="h-5 w-5" />
           </div>
 
           <div>
             <h2 className="text-2xl font-black tracking-tight">{title}</h2>
-            <p className="mt-1 text-sm leading-6 text-slate-400">{text}</p>
+            <p
+              className={`mt-1 text-sm leading-6 ${
+                isLight ? "text-slate-600" : "text-slate-400"
+              }`}
+            >
+              {text}
+            </p>
           </div>
         </div>
       </div>
@@ -1126,12 +1340,27 @@ function SocialField({
   value,
   onChange,
   placeholder,
+  isLight,
 }) {
   return (
-    <div className="rounded-[1.5rem] border border-white/10 bg-slate-950/70 p-4">
-      <label className="mb-2 flex items-center gap-2 text-sm font-black text-slate-200">
+    <div
+      className={`rounded-[1.5rem] border p-4 ${
+        isLight
+          ? "border-slate-200 bg-slate-50"
+          : "border-white/10 bg-slate-950/70"
+      }`}
+    >
+      <label
+        className={`mb-2 flex items-center gap-2 text-sm font-black ${
+          isLight ? "text-slate-700" : "text-slate-200"
+        }`}
+      >
         <span
-          className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.06]"
+          className={`flex h-9 w-9 items-center justify-center rounded-xl border ${
+            isLight
+              ? "border-slate-200 bg-white"
+              : "border-white/10 bg-white/[0.06]"
+          }`}
           style={{ color: brandColor || color }}
         >
           <Icon className="h-4 w-4" />
@@ -1143,23 +1372,45 @@ function SocialField({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-white/20 focus:bg-white/[0.07]"
+        className={`w-full rounded-2xl border px-4 py-3 text-sm outline-none transition ${
+          isLight
+            ? "border-slate-200 bg-white text-slate-950 placeholder:text-slate-400 focus:border-slate-300"
+            : "border-white/10 bg-white/[0.04] text-white placeholder:text-slate-600 focus:border-white/20 focus:bg-white/[0.07]"
+        }`}
       />
     </div>
   );
 }
 
-function TogglePanel({ title, text, checked, onChange, color }) {
+function TogglePanel({ title, text, checked, onChange, color, isLight }) {
   return (
-    <label className="flex cursor-pointer flex-col gap-4 rounded-[1.5rem] border border-white/10 bg-slate-950/70 p-5 transition hover:bg-white/[0.04] sm:flex-row sm:items-center sm:justify-between">
+    <label
+      className={`flex cursor-pointer flex-col gap-4 rounded-[1.5rem] border p-5 transition sm:flex-row sm:items-center sm:justify-between ${
+        isLight
+          ? "border-slate-200 bg-slate-50 hover:bg-slate-100"
+          : "border-white/10 bg-slate-950/70 hover:bg-white/[0.04]"
+      }`}
+    >
       <div>
-        <p className="font-black text-white">{title}</p>
-        <p className="mt-1 text-sm leading-6 text-slate-400">{text}</p>
+        <p className={isLight ? "font-black text-slate-950" : "font-black text-white"}>
+          {title}
+        </p>
+        <p
+          className={`mt-1 text-sm leading-6 ${
+            isLight ? "text-slate-600" : "text-slate-400"
+          }`}
+        >
+          {text}
+        </p>
       </div>
 
       <span
         className={`relative h-7 w-14 shrink-0 rounded-full border transition ${
-          checked ? "border-transparent" : "border-white/10 bg-white/10"
+          checked
+            ? "border-transparent"
+            : isLight
+              ? "border-slate-300 bg-slate-200"
+              : "border-white/10 bg-white/10"
         }`}
         style={checked ? { backgroundColor: color } : undefined}
       >
@@ -1195,30 +1446,42 @@ function PreviewDot({ label, value }) {
   );
 }
 
-function ColorDot({ label, value }) {
+function ColorDot({ label, value, isLight }) {
   return (
-    <div className="border-r border-white/10 p-3 last:border-r-0">
+    <div
+      className={`border-r p-3 last:border-r-0 ${
+        isLight ? "border-slate-200" : "border-white/10"
+      }`}
+    >
       <div
         className="mx-auto h-6 w-6 rounded-full"
         style={{ backgroundColor: value }}
       />
 
-      <p className="mt-2 truncate text-center text-[10px] font-bold uppercase tracking-wide text-slate-500">
+      <p
+        className={`mt-2 truncate text-center text-[10px] font-bold uppercase tracking-wide ${
+          isLight ? "text-slate-500" : "text-slate-500"
+        }`}
+      >
         {label}
       </p>
     </div>
   );
 }
 
-function AlertBox({ type, icon: Icon, text }) {
+function AlertBox({ type, icon: Icon, text, isLight }) {
   const isSuccess = type === "success";
 
   return (
     <div
       className={`mt-4 flex items-start gap-3 rounded-3xl border px-4 py-3 text-sm font-semibold ${
         isSuccess
-          ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-300"
-          : "border-red-400/20 bg-red-400/10 text-red-200"
+          ? isLight
+            ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+            : "border-emerald-400/20 bg-emerald-400/10 text-emerald-300"
+          : isLight
+            ? "border-red-200 bg-red-50 text-red-700"
+            : "border-red-400/20 bg-red-400/10 text-red-200"
       }`}
     >
       <Icon className="mt-0.5 h-4 w-4 shrink-0" />

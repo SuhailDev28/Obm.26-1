@@ -1,3 +1,4 @@
+// server/src/models/SiteSetting.js
 import mongoose from "mongoose";
 
 export const defaultSettings = {
@@ -7,6 +8,9 @@ export const defaultSettings = {
   // Make sure this file exists inside backend /uploads folder.
   // If your actual file name is "ogo-1780319743876.png", keep it as below.
   logo: "/uploads/ogo-1780319743876.png",
+
+  // Admin dashboard theme mode
+  adminThemeMode: "dark",
 
   primaryColor: "#22d3ee",
   secondaryColor: "#2563eb",
@@ -87,6 +91,13 @@ const siteSettingSchema = new mongoose.Schema(
     logo: {
       type: String,
       default: defaultSettings.logo,
+      trim: true,
+    },
+
+    adminThemeMode: {
+      type: String,
+      enum: ["dark", "light"],
+      default: defaultSettings.adminThemeMode,
       trim: true,
     },
 

@@ -1,3 +1,5 @@
+// server/src/routes/settings.routes.js
+
 import express from "express";
 import multer from "multer";
 import path from "path";
@@ -22,14 +24,28 @@ const lightModeDefaultSettings = {
   lightBorderColor: "#e2e8f0",
 };
 
+const adminModeDefaultSettings = {
+  adminThemeMode: "dark",
+};
+
 const effectiveDefaultSettings = {
   ...defaultSettings,
+  ...adminModeDefaultSettings,
   ...lightModeDefaultSettings,
 };
 
 const BOOLEAN_FIELDS = new Set(["contactEmailEnabled", "smtpEnabled"]);
 
-const PROTECTED_FIELDS = new Set(["key", "_id", "__v", "createdAt", "updatedAt", "updatedBy"]);
+const THEME_MODE_FIELDS = new Set(["adminThemeMode"]);
+
+const PROTECTED_FIELDS = new Set([
+  "key",
+  "_id",
+  "__v",
+  "createdAt",
+  "updatedAt",
+  "updatedBy",
+]);
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadDir),
@@ -74,6 +90,10 @@ function mergeSettings(settings = {}) {
   return {
     ...effectiveDefaultSettings,
     ...settings,
+    adminThemeMode:
+      settings.adminThemeMode === "light" || settings.adminThemeMode === "dark"
+        ? settings.adminThemeMode
+        : effectiveDefaultSettings.adminThemeMode,
     smtpPass: settings.smtpPass || "",
   };
 }
@@ -88,6 +108,15 @@ function normalizeBoolean(value) {
   return ["true", "1", "yes", "on"].includes(text);
 }
 
+function normalizeThemeMode(value) {
+  const text = String(value || "").trim().toLowerCase();
+
+  if (text === "light") return "light";
+  if (text === "dark") return "dark";
+
+  return "dark";
+}
+
 function sanitizeSettings(input = {}) {
   const allowed = Object.keys(effectiveDefaultSettings);
   const output = {};
@@ -98,6 +127,8 @@ function sanitizeSettings(input = {}) {
     if (Object.prototype.hasOwnProperty.call(input, key)) {
       if (BOOLEAN_FIELDS.has(key)) {
         output[key] = normalizeBoolean(input[key]);
+      } else if (THEME_MODE_FIELDS.has(key)) {
+        output[key] = normalizeThemeMode(input[key]);
       } else {
         output[key] = String(input[key] ?? "").trim();
       }

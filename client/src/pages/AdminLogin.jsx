@@ -1,48 +1,30 @@
 // client/src/pages/AdminLogin.jsx
-
 import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
   Eye,
   EyeOff,
-  Globe2,
-  LayoutDashboard,
   Lock,
   Mail,
-  Moon,
-  Palette,
   ShieldCheck,
   Sparkles,
-  Sun,
+  Palette,
+  LayoutDashboard,
+  Globe2,
 } from "lucide-react";
 
-import { loginAdmin, mediaUrl } from "../lib/api.js";
+import { loginAdmin } from "../lib/api.js";
 import { TOKEN_KEY } from "../config/siteData.js";
 
 const fallbackSettings = {
   siteName: "OBM",
   tagline: "Creative Digital Solutions",
-
   logo: "",
-  lightLogo: "",
-
-  adminThemeMode: "dark",
-  themeMode: "dark",
-
   primaryColor: "#22d3ee",
   secondaryColor: "#2563eb",
   accentColor: "#a855f7",
-
-  lightPrimaryColor: "#2563eb",
-  lightSecondaryColor: "#7c3aed",
-  lightAccentColor: "#0891b2",
-  lightBackgroundColor: "#f8fafc",
-  lightSurfaceColor: "#ffffff",
-  lightTextColor: "#0f172a",
-  lightMutedTextColor: "#475569",
-  lightIconColor: "#1d4ed8",
-  lightBorderColor: "#e2e8f0",
+  themeMode: "dark",
 };
 
 function normalizeHex(hex, fallback = "#22d3ee") {
@@ -65,12 +47,12 @@ function hexToRgba(hex, opacity = 1) {
   return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 }
 
-function getInitialThemeMode(settings = {}) {
-  const adminMode = String(settings.adminThemeMode || "").toLowerCase();
-  const themeMode = String(settings.themeMode || "").toLowerCase();
+function getInitialThemeMode(settingsThemeMode) {
+  const explicitMode = String(settingsThemeMode || "").toLowerCase();
 
-  if (adminMode === "light" || adminMode === "dark") return adminMode;
-  if (themeMode === "light" || themeMode === "dark") return themeMode;
+  if (explicitMode === "light" || explicitMode === "dark") {
+    return explicitMode;
+  }
 
   if (typeof document !== "undefined") {
     const html = document.documentElement;
@@ -78,7 +60,6 @@ function getInitialThemeMode(settings = {}) {
     if (
       html.classList.contains("light") ||
       html.classList.contains("obm-light") ||
-      html.classList.contains("obm-admin-light") ||
       html.dataset.theme === "light"
     ) {
       return "light";
@@ -87,81 +68,31 @@ function getInitialThemeMode(settings = {}) {
     if (
       html.classList.contains("dark") ||
       html.classList.contains("obm-dark") ||
-      html.classList.contains("obm-admin-dark") ||
       html.dataset.theme === "dark"
     ) {
       return "dark";
     }
   }
 
+  if (
+    typeof window !== "undefined" &&
+    window.matchMedia?.("(prefers-color-scheme: light)")?.matches
+  ) {
+    return "light";
+  }
+
   return "dark";
 }
 
-function getModeSettings(settings = {}, mode = "dark") {
-  const isLight = mode === "light";
-
-  return {
-    isLight,
-
-    primary: isLight
-      ? normalizeHex(settings.lightPrimaryColor, "#2563eb")
-      : normalizeHex(settings.primaryColor, "#22d3ee"),
-
-    secondary: isLight
-      ? normalizeHex(settings.lightSecondaryColor, "#7c3aed")
-      : normalizeHex(settings.secondaryColor, "#2563eb"),
-
-    accent: isLight
-      ? normalizeHex(settings.lightAccentColor, "#0891b2")
-      : normalizeHex(settings.accentColor, "#a855f7"),
-
-    background: isLight
-      ? normalizeHex(settings.lightBackgroundColor, "#f8fafc")
-      : "#020617",
-
-    surface: isLight
-      ? normalizeHex(settings.lightSurfaceColor, "#ffffff")
-      : "#0f172a",
-
-    text: isLight
-      ? normalizeHex(settings.lightTextColor, "#0f172a")
-      : "#ffffff",
-
-    muted: isLight
-      ? normalizeHex(settings.lightMutedTextColor, "#475569")
-      : "#cbd5e1",
-
-    icon: isLight
-      ? normalizeHex(settings.lightIconColor, "#1d4ed8")
-      : normalizeHex(settings.primaryColor, "#22d3ee"),
-
-    border: isLight
-      ? normalizeHex(settings.lightBorderColor, "#e2e8f0")
-      : "rgba(255,255,255,0.1)",
-  };
-}
-
-function getLogoSrc(settings = {}, mode = "dark") {
-  const isLight = mode === "light";
-
-  const selectedLogo = String(
-    isLight
-      ? settings.lightLogo ||
-          settings.logoUrl ||
-          settings.logo ||
-          settings.siteLogo ||
-          settings.brandLogo ||
-          settings.headerLogo ||
-          ""
-      : settings.logoUrl ||
-          settings.logo ||
-          settings.siteLogo ||
-          settings.brandLogo ||
-          settings.headerLogo ||
-          "",
-  ).trim();
-
-  return mediaUrl(selectedLogo);
+function getLogoSrc(settings = {}) {
+  return (
+    settings.logoUrl ||
+    settings.logo ||
+    settings.siteLogo ||
+    settings.brandLogo ||
+    settings.headerLogo ||
+    ""
+  );
 }
 
 export default function AdminLogin({
@@ -173,23 +104,27 @@ export default function AdminLogin({
     () => ({
       ...fallbackSettings,
       ...(settings || {}),
+      primaryColor: normalizeHex(settings?.primaryColor, fallbackSettings.primaryColor),
+      secondaryColor: normalizeHex(
+        settings?.secondaryColor,
+        fallbackSettings.secondaryColor,
+      ),
+      accentColor: normalizeHex(settings?.accentColor, fallbackSettings.accentColor),
     }),
     [settings],
   );
 
-  const [mode, setMode] = useState(() => getInitialThemeMode(theme));
+  const [mode, setMode] = useState(() => getInitialThemeMode(theme.themeMode));
   const [logoFailed, setLogoFailed] = useState(false);
 
-  const modeTheme = useMemo(() => getModeSettings(theme, mode), [theme, mode]);
-
-  const isLight = modeTheme.isLight;
-  const primary = modeTheme.primary;
-  const secondary = modeTheme.secondary;
-  const accent = modeTheme.accent;
-
+  const primary = theme.primaryColor;
+  const secondary = theme.secondaryColor;
+  const accent = theme.accentColor;
   const siteName = theme.siteName || "OBM";
   const tagline = theme.tagline || "Creative Digital Solutions";
-  const logoSrc = getLogoSrc(theme, mode);
+  const logoSrc = getLogoSrc(theme);
+
+  const isLight = mode === "light";
 
   const pageStyles = {
     "--obm-primary": primary,
@@ -199,8 +134,6 @@ export default function AdminLogin({
     "--obm-secondary-soft": hexToRgba(secondary, isLight ? 0.12 : 0.22),
     "--obm-accent-soft": hexToRgba(accent, isLight ? 0.11 : 0.2),
     "--obm-primary-ring": hexToRgba(primary, 0.28),
-    backgroundColor: modeTheme.background,
-    color: modeTheme.text,
   };
 
   const particles = useMemo(
@@ -216,32 +149,18 @@ export default function AdminLogin({
   );
 
   useEffect(() => {
-    setMode(getInitialThemeMode(theme));
-  }, [theme.adminThemeMode, theme.themeMode]);
+    setMode(getInitialThemeMode(theme.themeMode));
+  }, [theme.themeMode]);
 
   useEffect(() => {
     setLogoFailed(false);
-  }, [logoSrc, mode]);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("obm-admin-light", isLight);
-    document.documentElement.classList.toggle("obm-admin-dark", !isLight);
-
-    return () => {
-      document.documentElement.classList.remove("obm-admin-light");
-      document.documentElement.classList.remove("obm-admin-dark");
-    };
-  }, [isLight]);
+  }, [logoSrc]);
 
   const [email, setEmail] = useState("admin@obm.qa");
   const [password, setPassword] = useState("Admin@12345");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  const toggleMode = () => {
-    setMode((current) => (current === "light" ? "dark" : "light"));
-  };
 
   const submit = async (event) => {
     event.preventDefault();
@@ -277,7 +196,9 @@ export default function AdminLogin({
     <main
       className={[
         "relative min-h-screen overflow-hidden px-4 py-6 sm:px-6 lg:px-8",
-        isLight ? "text-slate-950" : "text-white",
+        isLight
+          ? "bg-slate-50 text-slate-950"
+          : "bg-slate-950 text-white",
       ].join(" ")}
       style={pageStyles}
     >
@@ -287,9 +208,15 @@ export default function AdminLogin({
             scale: [1, 1.18, 1],
             opacity: isLight ? [0.55, 0.85, 0.55] : [0.3, 0.55, 0.3],
           }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
           className="absolute -left-40 -top-40 h-[26rem] w-[26rem] rounded-full blur-3xl"
-          style={{ backgroundColor: "var(--obm-primary-soft)" }}
+          style={{
+            backgroundColor: "var(--obm-primary-soft)",
+          }}
         />
 
         <motion.div
@@ -297,9 +224,15 @@ export default function AdminLogin({
             scale: [1.12, 1, 1.12],
             opacity: isLight ? [0.45, 0.75, 0.45] : [0.25, 0.48, 0.25],
           }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+          transition={{
+            duration: 9,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
           className="absolute -bottom-44 -right-40 h-[28rem] w-[28rem] rounded-full blur-3xl"
-          style={{ backgroundColor: "var(--obm-secondary-soft)" }}
+          style={{
+            backgroundColor: "var(--obm-secondary-soft)",
+          }}
         />
 
         <motion.div
@@ -308,9 +241,15 @@ export default function AdminLogin({
             y: [0, -28, 0],
             opacity: isLight ? [0.35, 0.65, 0.35] : [0.16, 0.34, 0.16],
           }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
           className="absolute left-1/2 top-1/3 h-80 w-80 -translate-x-1/2 rounded-full blur-3xl"
-          style={{ backgroundColor: "var(--obm-accent-soft)" }}
+          style={{
+            backgroundColor: "var(--obm-accent-soft)",
+          }}
         />
 
         <div
@@ -345,20 +284,6 @@ export default function AdminLogin({
         ))}
       </div>
 
-      <button
-        type="button"
-        onClick={toggleMode}
-        className={[
-          "absolute right-4 top-4 z-20 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold shadow-sm backdrop-blur-xl transition sm:right-6 sm:top-6",
-          isLight
-            ? "border-slate-200 bg-white/80 text-slate-700 hover:bg-slate-100"
-            : "border-white/10 bg-white/[0.05] text-white hover:bg-white/10",
-        ].join(" ")}
-      >
-        {isLight ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-        {isLight ? "Dark" : "Light"}
-      </button>
-
       <div className="relative mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-7xl items-center justify-center">
         <div className="grid w-full items-center gap-8 lg:grid-cols-[1.08fr_0.92fr] xl:gap-12">
           <motion.section
@@ -374,15 +299,16 @@ export default function AdminLogin({
                   ? "border-slate-200 bg-white/70"
                   : "border-white/10 bg-white/[0.05]",
               ].join(" ")}
-              style={{ color: primary }}
+              style={{
+                color: primary,
+              }}
             >
               <Sparkles className="h-4 w-4" />
               Secure Brand Control Center
             </div>
 
             <h1 className="mt-7 max-w-3xl text-4xl font-black leading-[1.05] tracking-tight sm:text-5xl xl:text-6xl">
-              Manage your website, brand, and digital content from one
-              dashboard.
+              Manage your website, brand, and digital content from one dashboard.
             </h1>
 
             <p
@@ -399,13 +325,13 @@ export default function AdminLogin({
               {[
                 {
                   title: "Brand",
-                  text: "Dark & light logos",
+                  text: "Logo & identity",
                   icon: Palette,
                   color: primary,
                 },
                 {
                   title: "Theme",
-                  text: "Mode-based colors",
+                  text: "Dark & light colors",
                   icon: Sparkles,
                   color: secondary,
                 },
@@ -434,10 +360,7 @@ export default function AdminLogin({
                     <div
                       className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl"
                       style={{
-                        backgroundColor: hexToRgba(
-                          item.color,
-                          isLight ? 0.14 : 0.16,
-                        ),
+                        backgroundColor: hexToRgba(item.color, isLight ? 0.14 : 0.16),
                         color: item.color,
                       }}
                     >
@@ -491,7 +414,11 @@ export default function AdminLogin({
 
               <motion.div
                 animate={{ rotate: [0, 360] }}
-                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                transition={{
+                  duration: 20,
+                  repeat: Infinity,
+                  ease: "linear",
+                }}
                 className="absolute -right-20 -top-20 h-44 w-44 rounded-full border"
                 style={{
                   borderColor: hexToRgba(primary, isLight ? 0.18 : 0.25),
@@ -523,7 +450,6 @@ export default function AdminLogin({
                       ].join(" ")}
                     >
                       <img
-                        key={`${mode}-${logoSrc}`}
                         src={logoSrc}
                         alt={`${siteName} logo`}
                         className="h-full w-full object-contain"
@@ -545,10 +471,9 @@ export default function AdminLogin({
                         repeat: Infinity,
                         ease: "easeInOut",
                       }}
-                      className="flex h-20 w-20 items-center justify-center rounded-3xl"
+                      className="flex h-20 w-20 items-center justify-center rounded-3xl text-slate-950"
                       style={{
                         backgroundColor: primary,
-                        color: "#020617",
                       }}
                     >
                       <ShieldCheck className="h-10 w-10" />
@@ -563,7 +488,9 @@ export default function AdminLogin({
                       ? "border-slate-200 bg-slate-50"
                       : "border-white/10 bg-white/[0.05]",
                   ].join(" ")}
-                  style={{ color: primary }}
+                  style={{
+                    color: primary,
+                  }}
                 >
                   <Globe2 className="h-3.5 w-3.5" />
                   Secure Admin Access
@@ -579,8 +506,8 @@ export default function AdminLogin({
                     isLight ? "text-slate-500" : "text-slate-400",
                   ].join(" ")}
                 >
-                  {tagline}. Sign in to manage website settings, dark/light
-                  logos, colors, and content.
+                  {tagline}. Sign in to manage website settings, logo, colors,
+                  and content.
                 </p>
               </div>
 
@@ -614,7 +541,9 @@ export default function AdminLogin({
                           ? "border-slate-200 bg-white text-slate-950"
                           : "border-white/10 bg-slate-950/80 text-white",
                       ].join(" ")}
-                      style={{ "--tw-ring-color": "var(--obm-primary-ring)" }}
+                      style={{
+                        "--tw-ring-color": "var(--obm-primary-ring)",
+                      }}
                       onFocus={(event) => {
                         event.currentTarget.style.borderColor = primary;
                       }}
@@ -657,7 +586,9 @@ export default function AdminLogin({
                           ? "border-slate-200 bg-white text-slate-950"
                           : "border-white/10 bg-slate-950/80 text-white",
                       ].join(" ")}
-                      style={{ "--tw-ring-color": "var(--obm-primary-ring)" }}
+                      style={{
+                        "--tw-ring-color": "var(--obm-primary-ring)",
+                      }}
                       onFocus={(event) => {
                         event.currentTarget.style.borderColor = primary;
                       }}
@@ -678,9 +609,7 @@ export default function AdminLogin({
                           ? "text-slate-500 hover:bg-slate-100 hover:text-slate-950"
                           : "text-slate-400 hover:bg-white/10 hover:text-white",
                       ].join(" ")}
-                      aria-label={
-                        showPassword ? "Hide password" : "Show password"
-                      }
+                      aria-label={showPassword ? "Hide password" : "Show password"}
                     >
                       {showPassword ? (
                         <EyeOff className="h-5 w-5" />
@@ -696,7 +625,7 @@ export default function AdminLogin({
                 <motion.p
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-5 rounded-2xl border border-red-400/25 bg-red-500/10 px-4 py-3 text-sm font-bold text-red-500"
+                  className="mt-5 rounded-2xl border border-red-400/25 bg-red-500/10 px-4 py-3 text-sm font-bold text-red-500 dark:text-red-200"
                 >
                   {error}
                 </motion.p>
@@ -707,10 +636,9 @@ export default function AdminLogin({
                 disabled={loading}
                 whileHover={{ scale: loading ? 1 : 1.015 }}
                 whileTap={{ scale: loading ? 1 : 0.985 }}
-                className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 font-black shadow-lg transition disabled:cursor-not-allowed disabled:opacity-60"
+                className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 font-black text-slate-950 shadow-lg transition disabled:cursor-not-allowed disabled:opacity-60"
                 style={{
                   backgroundColor: primary,
-                  color: "#020617",
                   boxShadow: `0 16px 36px ${hexToRgba(primary, 0.28)}`,
                 }}
               >
@@ -731,42 +659,7 @@ export default function AdminLogin({
                 Back to Website
               </button>
 
-              <div
-                className={[
-                  "mt-6 rounded-2xl border px-4 py-3",
-                  isLight
-                    ? "border-slate-200 bg-slate-50"
-                    : "border-white/10 bg-slate-950/60",
-                ].join(" ")}
-              >
-                <p
-                  className={[
-                    "text-center text-xs leading-5",
-                    isLight ? "text-slate-500" : "text-slate-500",
-                  ].join(" ")}
-                >
-                  Default credentials should be changed before production.
-                  Update{" "}
-                  <span
-                    className={[
-                      "font-bold",
-                      isLight ? "text-slate-700" : "text-slate-300",
-                    ].join(" ")}
-                  >
-                    ADMIN_EMAIL
-                  </span>{" "}
-                  and{" "}
-                  <span
-                    className={[
-                      "font-bold",
-                      isLight ? "text-slate-700" : "text-slate-300",
-                    ].join(" ")}
-                  >
-                    ADMIN_PASSWORD
-                  </span>{" "}
-                  in your server environment.
-                </p>
-              </div>
+            
             </form>
           </motion.section>
         </div>

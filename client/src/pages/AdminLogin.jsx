@@ -69,13 +69,8 @@ function getInitialThemeMode(settings = {}) {
   const adminMode = String(settings.adminThemeMode || "").toLowerCase();
   const themeMode = String(settings.themeMode || "").toLowerCase();
 
-  if (adminMode === "light" || adminMode === "dark") {
-    return adminMode;
-  }
-
-  if (themeMode === "light" || themeMode === "dark") {
-    return themeMode;
-  }
+  if (adminMode === "light" || adminMode === "dark") return adminMode;
+  if (themeMode === "light" || themeMode === "dark") return themeMode;
 
   if (typeof document !== "undefined") {
     const html = document.documentElement;
@@ -226,11 +221,16 @@ export default function AdminLogin({
 
   useEffect(() => {
     setLogoFailed(false);
-  }, [logoSrc]);
+  }, [logoSrc, mode]);
 
   useEffect(() => {
     document.documentElement.classList.toggle("obm-admin-light", isLight);
     document.documentElement.classList.toggle("obm-admin-dark", !isLight);
+
+    return () => {
+      document.documentElement.classList.remove("obm-admin-light");
+      document.documentElement.classList.remove("obm-admin-dark");
+    };
   }, [isLight]);
 
   const [email, setEmail] = useState("admin@obm.qa");
@@ -287,11 +287,7 @@ export default function AdminLogin({
             scale: [1, 1.18, 1],
             opacity: isLight ? [0.55, 0.85, 0.55] : [0.3, 0.55, 0.3],
           }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
           className="absolute -left-40 -top-40 h-[26rem] w-[26rem] rounded-full blur-3xl"
           style={{ backgroundColor: "var(--obm-primary-soft)" }}
         />
@@ -301,11 +297,7 @@ export default function AdminLogin({
             scale: [1.12, 1, 1.12],
             opacity: isLight ? [0.45, 0.75, 0.45] : [0.25, 0.48, 0.25],
           }}
-          transition={{
-            duration: 9,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
           className="absolute -bottom-44 -right-40 h-[28rem] w-[28rem] rounded-full blur-3xl"
           style={{ backgroundColor: "var(--obm-secondary-soft)" }}
         />
@@ -316,11 +308,7 @@ export default function AdminLogin({
             y: [0, -28, 0],
             opacity: isLight ? [0.35, 0.65, 0.35] : [0.16, 0.34, 0.16],
           }}
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
           className="absolute left-1/2 top-1/3 h-80 w-80 -translate-x-1/2 rounded-full blur-3xl"
           style={{ backgroundColor: "var(--obm-accent-soft)" }}
         />
@@ -503,11 +491,7 @@ export default function AdminLogin({
 
               <motion.div
                 animate={{ rotate: [0, 360] }}
-                transition={{
-                  duration: 20,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
                 className="absolute -right-20 -top-20 h-44 w-44 rounded-full border"
                 style={{
                   borderColor: hexToRgba(primary, isLight ? 0.18 : 0.25),
@@ -539,6 +523,7 @@ export default function AdminLogin({
                       ].join(" ")}
                     >
                       <img
+                        key={`${mode}-${logoSrc}`}
                         src={logoSrc}
                         alt={`${siteName} logo`}
                         className="h-full w-full object-contain"
@@ -563,7 +548,7 @@ export default function AdminLogin({
                       className="flex h-20 w-20 items-center justify-center rounded-3xl"
                       style={{
                         backgroundColor: primary,
-                        color: modeTheme.solidIconColor || "#020617",
+                        color: "#020617",
                       }}
                     >
                       <ShieldCheck className="h-10 w-10" />

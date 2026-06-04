@@ -1,3 +1,5 @@
+// client/src/components/PublicNav.jsx
+
 import React, { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -11,6 +13,7 @@ import {
 } from "lucide-react";
 
 import LogoMark from "./LogoMark.jsx";
+import { mediaUrl } from "../lib/api.js";
 
 const FALLBACK_SETTINGS = {
   siteName: "OBM",
@@ -19,6 +22,7 @@ const FALLBACK_SETTINGS = {
   lightLogo: "",
   primaryColor: "#22d3ee",
   secondaryColor: "#2563eb",
+  lightPrimaryColor: "#2563eb",
 };
 
 function SafeLogo({
@@ -34,28 +38,37 @@ function SafeLogo({
   const selectedLogo = String(
     isLight
       ? settings?.lightLogo || settings?.logo || ""
-      : settings?.logo || ""
+      : settings?.logo || "",
   ).trim();
 
-  const hasLogo = Boolean(selectedLogo) && !logoFailed;
+  const logoSrc = mediaUrl(selectedLogo);
+  const hasLogo = Boolean(logoSrc) && !logoFailed;
 
   useEffect(() => {
     setLogoFailed(false);
-  }, [selectedLogo]);
+  }, [logoSrc, themeMode]);
 
   if (hasLogo) {
     return (
       <img
-        src={selectedLogo}
+        key={`${themeMode}-${logoSrc}`}
+        src={logoSrc}
         alt={settings?.siteName || "OBM"}
-        className={`h-10 w-10 rounded-xl object-contain sm:h-11 sm:w-11 ${className}`}
+        className={`h-10 w-auto max-w-[150px] object-contain sm:h-11 ${className}`}
         loading="eager"
         onError={() => setLogoFailed(true)}
       />
     );
   }
 
-  return <LogoMark settings={settings} variant={variant} />;
+  return (
+    <LogoMark
+      settings={settings}
+      variant={variant}
+      themeMode={themeMode}
+      logoField={isLight ? "lightLogo" : "logo"}
+    />
+  );
 }
 
 export default function PublicNav({
@@ -78,11 +91,14 @@ export default function PublicNav({
       primaryColor: settings?.primaryColor || FALLBACK_SETTINGS.primaryColor,
       secondaryColor:
         settings?.secondaryColor || FALLBACK_SETTINGS.secondaryColor,
+      lightPrimaryColor:
+        settings?.lightPrimaryColor || FALLBACK_SETTINGS.lightPrimaryColor,
     }),
     [settings],
   );
 
   const isLight = themeMode === "light";
+  const ctaColor = safeSettings.primaryColor;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -115,6 +131,10 @@ export default function PublicNav({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(() => {
+    setOpen(false);
+  }, [themeMode]);
+
   const closeMenu = () => setOpen(false);
 
   const goHome = () => {
@@ -122,7 +142,10 @@ export default function PublicNav({
 
     if (typeof navigate === "function") {
       navigate("/");
+      return;
     }
+
+    window.location.href = "/";
   };
 
   const goAdmin = () => {
@@ -130,7 +153,10 @@ export default function PublicNav({
 
     if (typeof navigate === "function") {
       navigate("/admin");
+      return;
     }
+
+    window.location.href = "/admin";
   };
 
   const navLinks = [
@@ -152,18 +178,22 @@ export default function PublicNav({
     ? "border-slate-200 bg-white text-slate-950 hover:bg-slate-100"
     : "border-white/10 bg-white/[0.04] text-white hover:bg-white/10";
 
+  const adminButtonClass = isLight
+    ? "border-slate-200 bg-white text-slate-950 hover:bg-slate-100"
+    : "border-white/10 bg-white/[0.03] text-white hover:bg-white/10";
+
+  const headerClass = isLight
+    ? scrolled
+      ? "border-slate-200 bg-white/90 shadow-xl shadow-slate-200/40 backdrop-blur-2xl"
+      : "border-slate-200 bg-white/75 backdrop-blur-xl"
+    : scrolled
+      ? "border-white/10 bg-slate-950/90 shadow-2xl shadow-black/20 backdrop-blur-2xl"
+      : "border-white/5 bg-slate-950/70 backdrop-blur-xl";
+
   return (
     <>
       <header
-        className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ${
-          isLight
-            ? scrolled
-              ? "border-slate-200 bg-white/90 shadow-xl shadow-slate-200/40 backdrop-blur-2xl"
-              : "border-slate-200 bg-white/75 backdrop-blur-xl"
-            : scrolled
-              ? "border-white/10 bg-slate-950/90 shadow-2xl shadow-black/20 backdrop-blur-2xl"
-              : "border-white/5 bg-slate-950/70 backdrop-blur-xl"
-        }`}
+        className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ${headerClass}`}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-5 lg:py-4">
           <button
@@ -232,11 +262,7 @@ export default function PublicNav({
             <button
               type="button"
               onClick={goAdmin}
-              className={`hidden items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-bold transition xl:inline-flex ${
-                isLight
-                  ? "border-slate-200 bg-white text-slate-950 hover:bg-slate-100"
-                  : "border-white/10 bg-white/[0.03] text-white hover:bg-white/10"
-              }`}
+              className={`hidden items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-bold transition xl:inline-flex ${adminButtonClass}`}
             >
               <LayoutDashboard className="h-4 w-4" />
               Admin
@@ -246,8 +272,8 @@ export default function PublicNav({
               href="#contact"
               className="group inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-black text-slate-950 shadow-lg transition hover:-translate-y-0.5 xl:px-5"
               style={{
-                backgroundColor: safeSettings.primaryColor,
-                boxShadow: `0 16px 40px ${safeSettings.primaryColor}24`,
+                backgroundColor: ctaColor,
+                boxShadow: `0 16px 40px ${ctaColor}24`,
               }}
             >
               <span className="hidden lg:inline">Book Consultation</span>
@@ -307,7 +333,7 @@ export default function PublicNav({
             >
               <div
                 className="absolute -left-10 -top-10 h-40 w-40 rounded-full blur-3xl"
-                style={{ backgroundColor: `${safeSettings.primaryColor}18` }}
+                style={{ backgroundColor: `${ctaColor}18` }}
               />
 
               <div className="relative">
@@ -362,7 +388,7 @@ export default function PublicNav({
                     href="#contact"
                     onClick={closeMenu}
                     className="inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-4 text-sm font-black text-slate-950"
-                    style={{ backgroundColor: safeSettings.primaryColor }}
+                    style={{ backgroundColor: ctaColor }}
                   >
                     <PhoneCall className="h-4 w-4" />
                     Book Consultation

@@ -1,62 +1,100 @@
+// client/src/components/Ui.jsx
+
 import React from "react";
 import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
 
-function hexToRgba(hex, opacity = 1) {
-  const value = String(hex || "#22d3ee").replace("#", "");
+function normalizeHexColor(color, fallback = "#22d3ee") {
+  const raw = String(color || "").trim();
 
-  if (!/^[0-9a-fA-F]{6}$/.test(value)) {
-    return `rgba(34, 211, 238, ${opacity})`;
+  if (!raw.startsWith("#")) return fallback;
+
+  let hex = raw.slice(1);
+
+  if (hex.length === 3) {
+    hex = hex
+      .split("")
+      .map((char) => `${char}${char}`)
+      .join("");
   }
 
-  const r = parseInt(value.slice(0, 2), 16);
-  const g = parseInt(value.slice(2, 4), 16);
-  const b = parseInt(value.slice(4, 6), 16);
+  if (!/^[0-9a-fA-F]{6}$/.test(hex)) return fallback;
+
+  return `#${hex}`;
+}
+
+function hexToRgba(hex, opacity = 1) {
+  const safeHex = normalizeHexColor(hex).replace("#", "");
+
+  const r = parseInt(safeHex.slice(0, 2), 16);
+  const g = parseInt(safeHex.slice(2, 4), 16);
+  const b = parseInt(safeHex.slice(4, 6), 16);
 
   return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 }
 
 function getThemeColors(settings = {}, themeMode = "dark") {
-  const isLight = themeMode === "light";
+  const isLight = themeMode === "light" || settings?.isLightMode === true;
+
+  const primaryColor = isLight
+    ? normalizeHexColor(
+        settings.lightPrimaryColor || settings.primaryColor,
+        "#2563eb",
+      )
+    : normalizeHexColor(settings.primaryColor, "#22d3ee");
+
+  const secondaryColor = isLight
+    ? normalizeHexColor(
+        settings.lightSecondaryColor || settings.secondaryColor,
+        "#7c3aed",
+      )
+    : normalizeHexColor(settings.secondaryColor, "#2563eb");
+
+  const accentColor = isLight
+    ? normalizeHexColor(
+        settings.lightAccentColor || settings.accentColor,
+        "#0891b2",
+      )
+    : normalizeHexColor(settings.accentColor, "#a855f7");
+
+  const backgroundColor = isLight
+    ? normalizeHexColor(settings.lightBackgroundColor, "#f8fafc")
+    : "#020617";
+
+  const surfaceColor = isLight
+    ? normalizeHexColor(settings.lightSurfaceColor, "#ffffff")
+    : "#0f172a";
+
+  const textColor = isLight
+    ? normalizeHexColor(settings.lightTextColor, "#0f172a")
+    : "#ffffff";
+
+  const mutedTextColor = isLight
+    ? normalizeHexColor(settings.lightMutedTextColor, "#475569")
+    : "#cbd5e1";
+
+  const borderColor = isLight
+    ? normalizeHexColor(settings.lightBorderColor, "#e2e8f0")
+    : "rgba(255,255,255,0.10)";
+
+  const iconColor = isLight
+    ? normalizeHexColor(
+        settings.lightIconColor || settings.lightPrimaryColor,
+        "#1d4ed8",
+      )
+    : primaryColor;
 
   return {
     isLight,
-
-    primaryColor: isLight
-      ? settings.lightPrimaryColor || settings.primaryColor || "#2563eb"
-      : settings.primaryColor || "#22d3ee",
-
-    secondaryColor: isLight
-      ? settings.lightSecondaryColor || settings.secondaryColor || "#7c3aed"
-      : settings.secondaryColor || "#2563eb",
-
-    accentColor: isLight
-      ? settings.lightAccentColor || settings.accentColor || "#0891b2"
-      : settings.accentColor || "#a855f7",
-
-    backgroundColor: isLight
-      ? settings.lightBackgroundColor || "#f8fafc"
-      : "#020617",
-
-    surfaceColor: isLight
-      ? settings.lightSurfaceColor || "#ffffff"
-      : "rgba(255,255,255,0.04)",
-
-    textColor: isLight
-      ? settings.lightTextColor || "#0f172a"
-      : "#ffffff",
-
-    mutedTextColor: isLight
-      ? settings.lightMutedTextColor || "#475569"
-      : "#cbd5e1",
-
-    borderColor: isLight
-      ? settings.lightBorderColor || "#e2e8f0"
-      : "rgba(255,255,255,0.10)",
-
-    iconColor: isLight
-      ? settings.lightIconColor || settings.lightPrimaryColor || "#1d4ed8"
-      : settings.primaryColor || "#22d3ee",
+    primaryColor,
+    secondaryColor,
+    accentColor,
+    backgroundColor,
+    surfaceColor,
+    textColor,
+    mutedTextColor,
+    borderColor,
+    iconColor,
   };
 }
 
@@ -68,12 +106,15 @@ export function Badge({ settings = {}, children, themeMode = "dark" }) {
       className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold"
       style={{
         borderColor: hexToRgba(theme.primaryColor, theme.isLight ? 0.22 : 0.28),
-        backgroundColor: hexToRgba(theme.primaryColor, theme.isLight ? 0.1 : 0.08),
+        backgroundColor: hexToRgba(
+          theme.primaryColor,
+          theme.isLight ? 0.1 : 0.08,
+        ),
         color: theme.primaryColor,
       }}
     >
-      <Sparkles className="h-4 w-4" />
-      {children}
+      <Sparkles className="h-4 w-4 shrink-0" />
+      <span>{children}</span>
     </span>
   );
 }
@@ -123,63 +164,66 @@ export function ServiceCard({
   settings = {},
   themeMode = "dark",
 }) {
-  const Icon = service.icon;
   const theme = getThemeColors(settings, themeMode);
+  const Icon = service?.icon;
+
+  const normalBackground = theme.isLight
+    ? hexToRgba(theme.surfaceColor, 0.94)
+    : "rgba(255,255,255,0.04)";
+
+  const hoverBackground = theme.isLight
+    ? "#ffffff"
+    : "rgba(255,255,255,0.07)";
+
+  const normalBorder = theme.borderColor;
+  const hoverBorder = hexToRgba(
+    theme.primaryColor,
+    theme.isLight ? 0.25 : 0.22,
+  );
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.05 }}
-      className="rounded-3xl border p-7 transition hover:-translate-y-1"
+      viewport={{ once: true, amount: 0.18 }}
+      transition={{ delay: index * 0.05, duration: 0.45, ease: "easeOut" }}
+      whileHover={{ y: -6 }}
+      className="rounded-3xl border p-7 transition-colors duration-200"
       style={{
-        borderColor: theme.borderColor,
-        backgroundColor: theme.isLight
-          ? hexToRgba(theme.surfaceColor, 0.92)
-          : "rgba(255,255,255,0.04)",
+        borderColor: normalBorder,
+        backgroundColor: normalBackground,
         boxShadow: theme.isLight
           ? `0 20px 60px ${hexToRgba(theme.primaryColor, 0.08)}`
           : "none",
       }}
       onMouseEnter={(event) => {
-        event.currentTarget.style.backgroundColor = theme.isLight
-          ? "#ffffff"
-          : "rgba(255,255,255,0.07)";
-        event.currentTarget.style.borderColor = hexToRgba(
-          theme.primaryColor,
-          theme.isLight ? 0.25 : 0.22,
-        );
+        event.currentTarget.style.backgroundColor = hoverBackground;
+        event.currentTarget.style.borderColor = hoverBorder;
       }}
       onMouseLeave={(event) => {
-        event.currentTarget.style.backgroundColor = theme.isLight
-          ? hexToRgba(theme.surfaceColor, 0.92)
-          : "rgba(255,255,255,0.04)";
-        event.currentTarget.style.borderColor = theme.borderColor;
+        event.currentTarget.style.backgroundColor = normalBackground;
+        event.currentTarget.style.borderColor = normalBorder;
       }}
     >
       <div
         className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl"
         style={{
-          backgroundColor: hexToRgba(theme.iconColor, theme.isLight ? 0.12 : 0.08),
+          backgroundColor: hexToRgba(
+            theme.iconColor,
+            theme.isLight ? 0.12 : 0.08,
+          ),
           color: theme.iconColor,
         }}
       >
-        <Icon className="h-7 w-7" />
+        {Icon ? <Icon className="h-7 w-7" /> : <Sparkles className="h-7 w-7" />}
       </div>
 
-      <h3
-        className="text-xl font-black"
-        style={{ color: theme.textColor }}
-      >
-        {service.title}
+      <h3 className="text-xl font-black" style={{ color: theme.textColor }}>
+        {service?.title || "Service"}
       </h3>
 
-      <p
-        className="mt-4 leading-7"
-        style={{ color: theme.mutedTextColor }}
-      >
-        {service.text}
+      <p className="mt-4 leading-7" style={{ color: theme.mutedTextColor }}>
+        {service?.text || ""}
       </p>
     </motion.div>
   );

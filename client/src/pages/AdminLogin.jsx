@@ -156,8 +156,7 @@ export default function AdminLogin({
     setLogoFailed(false);
   }, [logoSrc]);
 
-  const [email, setEmail] = useState("admin@obm.qa");
-  const [password, setPassword] = useState("Admin@12345");
+
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");

@@ -21,9 +21,7 @@ export default function LogoMark({
   const selectedLogo = useMemo(() => {
     const explicitLogo = logoField ? settings?.[logoField] : "";
 
-    if (explicitLogo) {
-      return explicitLogo;
-    }
+    if (explicitLogo) return explicitLogo;
 
     if (isLight) {
       return settings?.lightLogo || settings?.logo || "";
@@ -35,10 +33,7 @@ export default function LogoMark({
   const fallbackLogo = isLight ? FALLBACK_LIGHT_LOGO : FALLBACK_DARK_LOGO;
 
   const logoUrl = useMemo(() => {
-    if (selectedLogo) {
-      return mediaUrl(selectedLogo);
-    }
-
+    if (selectedLogo) return mediaUrl(selectedLogo);
     return fallbackLogo;
   }, [selectedLogo, fallbackLogo]);
 
@@ -46,39 +41,33 @@ export default function LogoMark({
     setImageFailed(false);
   }, [logoUrl, themeMode, logoField]);
 
-  const imgClass =
-    size === "lg"
-      ? "h-20 w-auto max-w-[260px]"
-      : variant === "navbar"
-        ? "h-10 w-auto max-w-[170px] sm:h-11"
-        : size === "sm"
-          ? "h-9 w-auto max-w-[130px]"
-          : "h-12 w-auto max-w-[180px]";
-
-  const fallbackClass =
-    size === "lg"
-      ? "h-16 min-w-28 px-5 text-2xl"
-      : size === "sm"
-        ? "h-9 min-w-16 px-3 text-base"
-        : "h-11 min-w-20 px-4 text-lg";
-
   const siteName = settings?.siteName || "OBM";
 
-  const primaryColor = isLight
-    ? settings?.lightPrimaryColor || settings?.primaryColor || "#2563eb"
-    : settings?.primaryColor || "#22d3ee";
+  const imgClass =
+    variant === "navbar"
+      ? "h-12 w-auto max-w-[210px] object-contain sm:h-14 sm:max-w-[240px]"
+      : size === "lg"
+        ? "h-24 w-auto max-w-[320px] object-contain"
+        : size === "sm"
+          ? "h-10 w-auto max-w-[150px] object-contain"
+          : "h-14 w-auto max-w-[220px] object-contain";
 
-  const secondaryColor = isLight
-    ? settings?.lightSecondaryColor || settings?.secondaryColor || "#7c3aed"
-    : settings?.secondaryColor || "#2563eb";
+  const textFallbackClass =
+    variant === "navbar"
+      ? "h-10 min-w-20 px-4 text-base"
+      : size === "lg"
+        ? "h-16 min-w-28 px-5 text-2xl"
+        : size === "sm"
+          ? "h-9 min-w-16 px-3 text-base"
+          : "h-11 min-w-20 px-4 text-lg";
 
-  if (logoUrl && !imageFailed) {
+  if (!imageFailed) {
     return (
       <img
         key={`${themeMode}-${logoField || "auto"}-${logoUrl}`}
         src={logoUrl}
         alt={`${siteName} logo`}
-        className={`${imgClass} object-contain ${className}`}
+        className={`${imgClass} ${className}`}
         loading="eager"
         decoding="async"
         onError={() => setImageFailed(true)}
@@ -88,13 +77,9 @@ export default function LogoMark({
 
   return (
     <div
-      className={`${fallbackClass} flex items-center justify-center rounded-2xl shadow-lg ${className}`}
-      style={{
-        background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
-        boxShadow: `0 18px 40px ${primaryColor}33`,
-      }}
+      className={`${textFallbackClass} flex items-center justify-center rounded-2xl bg-white text-black shadow-lg ${className}`}
     >
-      <span className="font-black text-white">
+      <span className="font-black tracking-tight">
         {String(siteName || "OBM")
           .slice(0, 3)
           .toUpperCase()}

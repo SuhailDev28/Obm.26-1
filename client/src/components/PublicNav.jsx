@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 
 import LogoMark from "./LogoMark.jsx";
-import { mediaUrl } from "../lib/api.js";
 
 const FALLBACK_SETTINGS = {
   siteName: "OBM",
@@ -23,53 +22,8 @@ const FALLBACK_SETTINGS = {
   primaryColor: "#22d3ee",
   secondaryColor: "#2563eb",
   lightPrimaryColor: "#2563eb",
+  lightSecondaryColor: "#7c3aed",
 };
-
-function SafeLogo({
-  settings,
-  variant = "navbar",
-  themeMode = "dark",
-  className = "",
-}) {
-  const [logoFailed, setLogoFailed] = useState(false);
-
-  const isLight = themeMode === "light";
-
-  const selectedLogo = String(
-    isLight
-      ? settings?.lightLogo || settings?.logo || ""
-      : settings?.logo || "",
-  ).trim();
-
-  const logoSrc = mediaUrl(selectedLogo);
-  const hasLogo = Boolean(logoSrc) && !logoFailed;
-
-  useEffect(() => {
-    setLogoFailed(false);
-  }, [logoSrc, themeMode]);
-
-  if (hasLogo) {
-    return (
-      <img
-        key={`${themeMode}-${logoSrc}`}
-        src={logoSrc}
-        alt={settings?.siteName || "OBM"}
-        className={`h-10 w-auto max-w-[150px] object-contain sm:h-11 ${className}`}
-        loading="eager"
-        onError={() => setLogoFailed(true)}
-      />
-    );
-  }
-
-  return (
-    <LogoMark
-      settings={settings}
-      variant={variant}
-      themeMode={themeMode}
-      logoField={isLight ? "lightLogo" : "logo"}
-    />
-  );
-}
 
 export default function PublicNav({
   settings,
@@ -86,19 +40,26 @@ export default function PublicNav({
       ...(settings || {}),
       siteName: settings?.siteName || FALLBACK_SETTINGS.siteName,
       tagline: settings?.tagline || FALLBACK_SETTINGS.tagline,
-      logo: settings?.logo || FALLBACK_SETTINGS.logo,
-      lightLogo: settings?.lightLogo || FALLBACK_SETTINGS.lightLogo,
+      logo: settings?.logo || "",
+      lightLogo: settings?.lightLogo || "",
       primaryColor: settings?.primaryColor || FALLBACK_SETTINGS.primaryColor,
       secondaryColor:
         settings?.secondaryColor || FALLBACK_SETTINGS.secondaryColor,
       lightPrimaryColor:
         settings?.lightPrimaryColor || FALLBACK_SETTINGS.lightPrimaryColor,
+      lightSecondaryColor:
+        settings?.lightSecondaryColor ||
+        settings?.secondaryColor ||
+        FALLBACK_SETTINGS.lightSecondaryColor,
     }),
     [settings],
   );
 
   const isLight = themeMode === "light";
-  const ctaColor = safeSettings.primaryColor;
+
+  const ctaColor = isLight
+    ? safeSettings.lightPrimaryColor || safeSettings.primaryColor
+    : safeSettings.primaryColor;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -203,10 +164,11 @@ export default function PublicNav({
             aria-label="Go to home"
           >
             <div className="shrink-0 transition duration-300 group-hover:scale-105">
-              <SafeLogo
+              <LogoMark
                 settings={safeSettings}
                 variant="navbar"
                 themeMode={themeMode}
+                className="block"
               />
             </div>
 
@@ -343,10 +305,11 @@ export default function PublicNav({
                   }`}
                 >
                   <div className="shrink-0">
-                    <SafeLogo
+                    <LogoMark
                       settings={safeSettings}
                       variant="navbar"
                       themeMode={themeMode}
+                      className="block"
                     />
                   </div>
 

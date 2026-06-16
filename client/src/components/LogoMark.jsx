@@ -3,6 +3,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { mediaUrl } from "../lib/api.js";
 
+const FALLBACK_DARK_LOGO = "/assets/obm-logo-dark.png";
+const FALLBACK_LIGHT_LOGO = "/assets/obm-logo-light-blue.png";
+
 export default function LogoMark({
   settings = {},
   size = "md",
@@ -29,7 +32,15 @@ export default function LogoMark({
     return settings?.logo || "";
   }, [settings, logoField, isLight]);
 
-  const logoUrl = useMemo(() => mediaUrl(selectedLogo), [selectedLogo]);
+  const fallbackLogo = isLight ? FALLBACK_LIGHT_LOGO : FALLBACK_DARK_LOGO;
+
+  const logoUrl = useMemo(() => {
+    if (selectedLogo) {
+      return mediaUrl(selectedLogo);
+    }
+
+    return fallbackLogo;
+  }, [selectedLogo, fallbackLogo]);
 
   useEffect(() => {
     setImageFailed(false);
@@ -37,12 +48,12 @@ export default function LogoMark({
 
   const imgClass =
     size === "lg"
-      ? "h-20 w-auto max-w-[240px]"
+      ? "h-20 w-auto max-w-[260px]"
       : variant === "navbar"
-        ? "h-10 w-auto max-w-[150px] sm:h-11"
+        ? "h-10 w-auto max-w-[170px] sm:h-11"
         : size === "sm"
-          ? "h-9 w-auto max-w-[120px]"
-          : "h-12 w-auto max-w-[160px]";
+          ? "h-9 w-auto max-w-[130px]"
+          : "h-12 w-auto max-w-[180px]";
 
   const fallbackClass =
     size === "lg"
@@ -69,6 +80,7 @@ export default function LogoMark({
         alt={`${siteName} logo`}
         className={`${imgClass} object-contain ${className}`}
         loading="eager"
+        decoding="async"
         onError={() => setImageFailed(true)}
       />
     );
@@ -83,7 +95,9 @@ export default function LogoMark({
       }}
     >
       <span className="font-black text-white">
-        {String(siteName || "OBM").slice(0, 3).toUpperCase()}
+        {String(siteName || "OBM")
+          .slice(0, 3)
+          .toUpperCase()}
       </span>
     </div>
   );

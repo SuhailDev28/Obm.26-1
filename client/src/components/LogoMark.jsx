@@ -18,24 +18,27 @@ export default function LogoMark({
 
   const isLight = themeMode === "light";
 
-  const selectedLogo = useMemo(() => {
+  const uploadedLogo = useMemo(() => {
     const explicitLogo = logoField ? settings?.[logoField] : "";
 
-    if (explicitLogo) return explicitLogo;
+    if (explicitLogo) return String(explicitLogo).trim();
 
     if (isLight) {
-      return settings?.lightLogo || settings?.logo || "";
+      return String(settings?.lightLogo || settings?.logo || "").trim();
     }
 
-    return settings?.logo || "";
+    return String(settings?.logo || "").trim();
   }, [settings, logoField, isLight]);
 
   const fallbackLogo = isLight ? FALLBACK_LIGHT_LOGO : FALLBACK_DARK_LOGO;
 
   const logoUrl = useMemo(() => {
-    if (selectedLogo) return mediaUrl(selectedLogo);
+    if (uploadedLogo) {
+      return mediaUrl(uploadedLogo);
+    }
+
     return fallbackLogo;
-  }, [selectedLogo, fallbackLogo]);
+  }, [uploadedLogo, fallbackLogo]);
 
   useEffect(() => {
     setImageFailed(false);
@@ -45,21 +48,12 @@ export default function LogoMark({
 
   const imgClass =
     variant === "navbar"
-      ? "h-12 w-auto max-w-[210px] object-contain sm:h-14 sm:max-w-[240px]"
+      ? "h-10 w-auto max-w-[165px] object-contain sm:h-11 sm:max-w-[185px]"
       : size === "lg"
-        ? "h-24 w-auto max-w-[320px] object-contain"
+        ? "h-20 w-auto max-w-[280px] object-contain"
         : size === "sm"
-          ? "h-10 w-auto max-w-[150px] object-contain"
-          : "h-14 w-auto max-w-[220px] object-contain";
-
-  const textFallbackClass =
-    variant === "navbar"
-      ? "h-10 min-w-20 px-4 text-base"
-      : size === "lg"
-        ? "h-16 min-w-28 px-5 text-2xl"
-        : size === "sm"
-          ? "h-9 min-w-16 px-3 text-base"
-          : "h-11 min-w-20 px-4 text-lg";
+          ? "h-9 w-auto max-w-[130px] object-contain"
+          : "h-12 w-auto max-w-[180px] object-contain";
 
   if (!imageFailed) {
     return (
@@ -76,14 +70,12 @@ export default function LogoMark({
   }
 
   return (
-    <div
-      className={`${textFallbackClass} flex items-center justify-center rounded-2xl bg-white text-black shadow-lg ${className}`}
-    >
-      <span className="font-black tracking-tight">
-        {String(siteName || "OBM")
-          .slice(0, 3)
-          .toUpperCase()}
-      </span>
-    </div>
+    <img
+      src={fallbackLogo}
+      alt={`${siteName} logo`}
+      className={`${imgClass} ${className}`}
+      loading="eager"
+      decoding="async"
+    />
   );
 }

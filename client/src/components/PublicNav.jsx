@@ -34,26 +34,38 @@ export default function PublicNav({
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  const safeSettings = useMemo(
-    () => ({
+  const safeSettings = useMemo(() => {
+    const currentSettings = settings || {};
+
+    return {
       ...FALLBACK_SETTINGS,
-      ...(settings || {}),
-      siteName: settings?.siteName || FALLBACK_SETTINGS.siteName,
-      tagline: settings?.tagline || FALLBACK_SETTINGS.tagline,
-      logo: settings?.logo || "",
-      lightLogo: settings?.lightLogo || "",
-      primaryColor: settings?.primaryColor || FALLBACK_SETTINGS.primaryColor,
+      ...currentSettings,
+
+      siteName: currentSettings.siteName || FALLBACK_SETTINGS.siteName,
+      tagline: currentSettings.tagline || FALLBACK_SETTINGS.tagline,
+
+      // Keep admin upload active.
+      // If these values exist from backend/admin settings, LogoMark will use them.
+      logo: currentSettings.logo || "",
+      lightLogo: currentSettings.lightLogo || "",
+
+      primaryColor:
+        currentSettings.primaryColor || FALLBACK_SETTINGS.primaryColor,
+
       secondaryColor:
-        settings?.secondaryColor || FALLBACK_SETTINGS.secondaryColor,
+        currentSettings.secondaryColor || FALLBACK_SETTINGS.secondaryColor,
+
       lightPrimaryColor:
-        settings?.lightPrimaryColor || FALLBACK_SETTINGS.lightPrimaryColor,
+        currentSettings.lightPrimaryColor ||
+        currentSettings.primaryColor ||
+        FALLBACK_SETTINGS.lightPrimaryColor,
+
       lightSecondaryColor:
-        settings?.lightSecondaryColor ||
-        settings?.secondaryColor ||
+        currentSettings.lightSecondaryColor ||
+        currentSettings.secondaryColor ||
         FALLBACK_SETTINGS.lightSecondaryColor,
-    }),
-    [settings],
-  );
+    };
+  }, [settings]);
 
   const isLight = themeMode === "light";
 
